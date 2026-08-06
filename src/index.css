@@ -1,0 +1,26 @@
+/*
+  Minimal reset for Phase 1 scaffolding only.
+  Replaced with the real design system (tokens, typography, theming) in Phase 2.
+*/
+:root {
+  color-scheme: light dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+}
