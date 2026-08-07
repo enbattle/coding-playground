@@ -1,0 +1,29 @@
+.wrap {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.pane {
+  min-width: 0;
+  overflow: auto;
+}
+
+.divider {
+  flex: none;
+  width: 5px;
+  cursor: col-resize;
+  background: var(--cp-color-border);
+  position: relative;
+}
+
+.divider:hover,
+.divider.dragging {
+  background: var(--cp-color-accent);
+}
+
+.divider::after {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+}

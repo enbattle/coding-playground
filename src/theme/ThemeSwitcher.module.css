@@ -1,0 +1,34 @@
+.switcher {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--cp-color-border);
+  border-radius: var(--cp-radius-sm);
+  padding: 2px;
+}
+
+.option {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--cp-color-text-dim);
+  font-family: var(--cp-font-body);
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: calc(var(--cp-radius-sm) - 1px);
+  cursor: pointer;
+}
+
+.option:hover:not(:disabled) {
+  color: var(--cp-color-text-strong);
+}
+
+.option.active {
+  color: var(--cp-color-bg);
+  background: var(--cp-color-accent);
+}
+
+.option:disabled {
+  color: var(--cp-color-text-dim);
+  opacity: 0.5;
+  cursor: not-allowed;
+}

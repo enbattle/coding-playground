@@ -1,9 +1,9 @@
 /*
-  Minimal reset for Phase 1 scaffolding only.
-  Replaced with the real design system (tokens, typography, theming) in Phase 2.
+  Global reset. All theme-dependent values (color, font, radius, shadow) come from the --cp-*
+  custom properties set at runtime by src/theme/tokens.ts — nothing theme-specific belongs here.
 */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 *,
@@ -20,7 +20,14 @@ body,
 }
 
 body {
-  font:
-    16px/1.5 system-ui,
-    sans-serif;
+  background: var(--cp-color-bg);
+  color: var(--cp-color-text);
+  font-family: var(--cp-font-body);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+button {
+  font: inherit;
 }

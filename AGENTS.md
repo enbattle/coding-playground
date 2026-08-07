@@ -19,7 +19,13 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
   `src/editor/`, `src/execution/`, `src/files/`, `src/settings/`, `src/packages-panel/`,
-  `src/layout/`, `src/state/`.
+  `src/layout/`, `src/state/`, `src/theme/`.
+- Theming: every themed value is a `--cp-*` CSS custom property (see `src/theme/tokens.ts`), never
+  a literal color/font in component CSS — this is what lets themes multiply without components
+  being rebuilt per theme. Exceptions are deliberate and narrow: fonts come only from the
+  `FontKey` registry (`src/theme/fonts.ts`), and each curated theme's signature decorative motif
+  lives in `src/theme/motifs.tsx`, not in tokens. See
+  `docs/decisions/0004-theme-tokens-and-ai-ready-generation.md` before changing this system.
 
 ## Commands
 
