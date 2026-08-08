@@ -1,4 +1,4 @@
-import * as ts from 'typescript'
+import * as ts from 'typescript';
 
 /**
  * Runs entirely off the main thread. Unrelated to Monaco's own TS language-service worker
@@ -8,18 +8,18 @@ import * as ts from 'typescript'
  */
 
 export interface TranspileRequest {
-  id: number
-  source: string
+  id: number;
+  source: string;
 }
 
 export interface TranspileResponse {
-  id: number
-  code: string
-  diagnostics: string[]
+  id: number;
+  code: string;
+  diagnostics: string[];
 }
 
 self.onmessage = (event: MessageEvent<TranspileRequest>) => {
-  const { id, source } = event.data
+  const { id, source } = event.data;
 
   const result = ts.transpileModule(source, {
     compilerOptions: {
@@ -30,12 +30,12 @@ self.onmessage = (event: MessageEvent<TranspileRequest>) => {
       isolatedModules: true,
     },
     reportDiagnostics: true,
-  })
+  });
 
   const diagnostics = (result.diagnostics ?? []).map((diagnostic) =>
     ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-  )
+  );
 
-  const response: TranspileResponse = { id, code: result.outputText, diagnostics }
-  self.postMessage(response)
-}
+  const response: TranspileResponse = { id, code: result.outputText, diagnostics };
+  self.postMessage(response);
+};

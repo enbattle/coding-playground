@@ -1,4 +1,4 @@
-import type { MotifKey } from './tokens'
+import type { MotifKey } from './tokens';
 
 /**
  * The handful of signature visual details that make each curated theme memorable — scanlines,
@@ -25,7 +25,7 @@ function InstrumentPanelMotif() {
           'repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0px, rgba(255,255,255,.015) 1px, transparent 1px, transparent 3px)',
       }}
     />
-  )
+  );
 }
 
 function TerminalBotanicalMotif() {
@@ -63,7 +63,7 @@ function TerminalBotanicalMotif() {
         />
       </svg>
     </div>
-  )
+  );
 }
 
 function CartographicBlueprintMotif() {
@@ -76,7 +76,7 @@ function CartographicBlueprintMotif() {
       <line x1="0" y1="32" x2="64" y2="32" stroke="#7FD8E8" strokeWidth="1" />
       <line x1="32" y1="0" x2="32" y2="64" stroke="#7FD8E8" strokeWidth="1" />
     </svg>
-  )
+  );
 
   return (
     <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
@@ -92,7 +92,7 @@ function CartographicBlueprintMotif() {
       <div style={{ position: 'absolute', top: 16, left: 16 }}>{corner('none')}</div>
       <div style={{ position: 'absolute', bottom: 16, right: 16 }}>{corner('rotate(180deg)')}</div>
     </div>
-  )
+  );
 }
 
 const MOTIF_REGISTRY: Record<MotifKey, React.ComponentType> = {
@@ -100,9 +100,9 @@ const MOTIF_REGISTRY: Record<MotifKey, React.ComponentType> = {
   'terminal-botanical': TerminalBotanicalMotif,
   'cartographic-blueprint': CartographicBlueprintMotif,
   none: () => null,
-}
+};
 
 export function ThemeMotif({ motif }: { motif: MotifKey }) {
-  const Motif = MOTIF_REGISTRY[motif]
-  return <Motif />
+  const Motif = MOTIF_REGISTRY[motif];
+  return <Motif />;
 }

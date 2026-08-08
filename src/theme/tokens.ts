@@ -1,7 +1,8 @@
-import { ALLOWED_FONTS, ensureFontsLoaded, type FontKey } from './fonts'
+import { ALLOWED_FONTS, ensureFontsLoaded, type FontKey } from './fonts';
 
 /** Which decorative background layer (see ./motifs.tsx) a theme uses. `'none'` for themes with no bespoke art. */
-export type MotifKey = 'instrument-panel' | 'terminal-botanical' | 'cartographic-blueprint' | 'none'
+export type MotifKey =
+  'instrument-panel' | 'terminal-botanical' | 'cartographic-blueprint' | 'none';
 
 /**
  * The complete, serializable description of a theme. Every visual value a theme controls lives
@@ -10,32 +11,32 @@ export type MotifKey = 'instrument-panel' | 'terminal-botanical' | 'cartographic
  * ./generate.ts) are both just a `ThemeTokens` object, applied through the same `applyThemeTokens`.
  */
 export interface ThemeTokens {
-  id: string
-  name: string
+  id: string;
+  name: string;
 
-  colorBg: string
-  colorSurface: string
-  colorSurface2: string
-  colorBorder: string
-  colorText: string
-  colorTextDim: string
-  colorTextStrong: string
-  colorAccent: string
-  colorAccent2: string
-  colorDanger: string
+  colorBg: string;
+  colorSurface: string;
+  colorSurface2: string;
+  colorBorder: string;
+  colorText: string;
+  colorTextDim: string;
+  colorTextStrong: string;
+  colorAccent: string;
+  colorAccent2: string;
+  colorDanger: string;
 
-  radiusSm: string
-  radiusMd: string
-  radiusLg: string
-  shadow: string
+  radiusSm: string;
+  radiusMd: string;
+  radiusLg: string;
+  shadow: string;
 
-  fontDisplay: FontKey
-  fontBody: FontKey
-  fontMono: FontKey
-  trackingDisplay: string
-  transformDisplay: 'uppercase' | 'none'
+  fontDisplay: FontKey;
+  fontBody: FontKey;
+  fontMono: FontKey;
+  trackingDisplay: string;
+  transformDisplay: 'uppercase' | 'none';
 
-  motif: MotifKey
+  motif: MotifKey;
 }
 
 const CSS_VAR_MAP: Record<
@@ -58,7 +59,7 @@ const CSS_VAR_MAP: Record<
   shadow: '--cp-shadow',
   trackingDisplay: '--cp-tracking-display',
   transformDisplay: '--cp-transform-display',
-}
+};
 
 /**
  * Applies a full theme to the document: sets every `--cp-*` custom property on `<html>`, resolves
@@ -70,16 +71,16 @@ const CSS_VAR_MAP: Record<
  * of which themes exist.
  */
 export function applyThemeTokens(tokens: ThemeTokens): void {
-  const root = document.documentElement
+  const root = document.documentElement;
 
   for (const [key, cssVar] of Object.entries(CSS_VAR_MAP) as [keyof typeof CSS_VAR_MAP, string][]) {
-    root.style.setProperty(cssVar, tokens[key])
+    root.style.setProperty(cssVar, tokens[key]);
   }
 
-  root.style.setProperty('--cp-font-display', ALLOWED_FONTS[tokens.fontDisplay].family)
-  root.style.setProperty('--cp-font-body', ALLOWED_FONTS[tokens.fontBody].family)
-  root.style.setProperty('--cp-font-mono', ALLOWED_FONTS[tokens.fontMono].family)
+  root.style.setProperty('--cp-font-display', ALLOWED_FONTS[tokens.fontDisplay].family);
+  root.style.setProperty('--cp-font-body', ALLOWED_FONTS[tokens.fontBody].family);
+  root.style.setProperty('--cp-font-mono', ALLOWED_FONTS[tokens.fontMono].family);
 
-  root.dataset.theme = tokens.id
-  ensureFontsLoaded([tokens.fontDisplay, tokens.fontBody, tokens.fontMono])
+  root.dataset.theme = tokens.id;
+  ensureFontsLoaded([tokens.fontDisplay, tokens.fontBody, tokens.fontMono]);
 }

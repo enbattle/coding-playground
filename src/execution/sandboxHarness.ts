@@ -28,10 +28,10 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
   post('console', { level: 'error', text: 'Uncaught (in promise) ' + serialize(event.reason) })
 })
-`
+`;
 
 function escapeForInlineScript(code: string): string {
-  return code.replace(/<\/script/gi, '<\\/script')
+  return code.replace(/<\/script/gi, '<\\/script');
 }
 
 export function buildRuntimeHarness(code: string): string {
@@ -44,5 +44,5 @@ ${RUNTIME_SETUP}
 ${escapeForInlineScript(code)}
     </script>
   </body>
-</html>`
+</html>`;
 }

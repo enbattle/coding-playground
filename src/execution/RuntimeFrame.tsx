@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
-import { buildRuntimeHarness } from './sandboxHarness'
-import { isRuntimeConsoleMessage } from './runtimeMessage'
-import { useExecutionStore } from './store'
+import { useEffect, useRef } from 'react';
+import { buildRuntimeHarness } from './sandboxHarness';
+import { isRuntimeConsoleMessage } from './runtimeMessage';
+import { useExecutionStore } from './store';
 
 /**
  * Invisible — Phase 3 only captures console output. A visible Preview tab (rendering the iframe's
@@ -11,24 +11,24 @@ import { useExecutionStore } from './store'
  * a fresh one, so each run gets a clean global scope with no state leaking from the last run.
  */
 export function RuntimeFrame({ runId, code }: { runId: number; code: string | null }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    if (code === null) return
-    const iframe = iframeRef.current
-    if (!iframe) return
+    if (code === null) return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
 
     const onMessage = (event: MessageEvent) => {
-      if (event.source !== iframe.contentWindow) return
-      if (!isRuntimeConsoleMessage(event.data)) return
-      useExecutionStore.getState().append({ level: event.data.level, text: event.data.text })
-    }
+      if (event.source !== iframe.contentWindow) return;
+      if (!isRuntimeConsoleMessage(event.data)) return;
+      useExecutionStore.getState().append({ level: event.data.level, text: event.data.text });
+    };
 
-    window.addEventListener('message', onMessage)
-    return () => window.removeEventListener('message', onMessage)
-  }, [runId, code])
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [runId, code]);
 
-  if (code === null) return null
+  if (code === null) return null;
 
   return (
     <iframe
@@ -39,5 +39,5 @@ export function RuntimeFrame({ runId, code }: { runId: number; code: string | nu
       style={{ display: 'none' }}
       title="Execution sandbox"
     />
-  )
+  );
 }

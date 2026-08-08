@@ -1,5 +1,5 @@
-import { useExecutionStore } from './store'
-import styles from './ConsolePanel.module.css'
+import { useExecutionStore } from './store';
+import styles from './ConsolePanel.module.css';
 
 const LEVEL_MARKER: Record<string, string> = {
   log: '▸',
@@ -7,11 +7,11 @@ const LEVEL_MARKER: Record<string, string> = {
   warn: '⚠',
   error: '✕',
   debug: '▸',
-}
+};
 
 export function ConsolePanel() {
-  const entries = useExecutionStore((state) => state.entries)
-  const status = useExecutionStore((state) => state.status)
+  const entries = useExecutionStore((state) => state.entries);
+  const status = useExecutionStore((state) => state.status);
 
   return (
     <div className={styles.pane}>
@@ -31,5 +31,5 @@ export function ConsolePanel() {
         ))}
       </div>
     </div>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import { MonacoEditor } from '../editor/MonacoEditor'
-import { ConsolePanel } from '../execution/ConsolePanel'
-import { RuntimeFrame } from '../execution/RuntimeFrame'
-import { useRunner } from '../execution/useRunner'
-import { ThemeMotif } from '../theme/motifs'
-import { useThemeStore, resolveActiveTokens } from '../theme/store'
-import { ThemeSwitcher } from '../theme/ThemeSwitcher'
-import { SplitPane } from './SplitPane'
-import styles from './AppShell.module.css'
+import { MonacoEditor } from '../editor/MonacoEditor';
+import { ConsolePanel } from '../execution/ConsolePanel';
+import { RuntimeFrame } from '../execution/RuntimeFrame';
+import { useRunner } from '../execution/useRunner';
+import { ThemeMotif } from '../theme/motifs';
+import { useThemeStore, resolveActiveTokens } from '../theme/store';
+import { ThemeSwitcher } from '../theme/ThemeSwitcher';
+import { SplitPane } from './SplitPane';
+import styles from './AppShell.module.css';
 
 export function AppShell() {
-  const tokens = useThemeStore(resolveActiveTokens)
-  const { runId, code, run } = useRunner()
+  const tokens = useThemeStore(resolveActiveTokens);
+  const { runId, code, run } = useRunner();
 
   return (
     <>
@@ -46,5 +46,5 @@ export function AppShell() {
         </footer>
       </div>
     </>
-  )
+  );
 }

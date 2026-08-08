@@ -1,7 +1,7 @@
-import './monacoEnvironment'
-import * as monaco from 'monaco-editor/editor/editor.api'
+import './monacoEnvironment';
+import * as monaco from 'monaco-editor/editor/editor.api';
 // Registers the 'typescript' language id + Monarch tokenizer with Monaco's basic language registry.
-import 'monaco-editor/languages/definitions/typescript/register'
+import 'monaco-editor/languages/definitions/typescript/register';
 // The language service itself (diagnostics, completions) — monaco-editor 0.56 moved this out from
 // under `monaco.languages.typescript` (now a deprecated stub) to direct named exports.
 import {
@@ -9,11 +9,11 @@ import {
   ScriptTarget,
   ModuleKind,
   ModuleResolutionKind,
-} from 'monaco-editor/languages/features/typescript/register'
-import { useEffect, useRef } from 'react'
-import { syncMonacoTheme } from './monacoTheme'
-import { useEditorStore } from './store'
-import styles from './MonacoEditor.module.css'
+} from 'monaco-editor/languages/features/typescript/register';
+import { useEffect, useRef } from 'react';
+import { syncMonacoTheme } from './monacoTheme';
+import { useEditorStore } from './store';
+import styles from './MonacoEditor.module.css';
 
 typescriptDefaults.setCompilerOptions({
   // This trimmed-down ScriptTarget enum tops out at ESNext (no discrete ES2022/ES2023 members).
@@ -25,30 +25,30 @@ typescriptDefaults.setCompilerOptions({
   strict: true,
   esModuleInterop: true,
   skipLibCheck: true,
-})
+});
 
-let themeSynced = false
+let themeSynced = false;
 
 export function MonacoEditor() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     if (!themeSynced) {
-      syncMonacoTheme()
-      themeSynced = true
+      syncMonacoTheme();
+      themeSynced = true;
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const container = containerRef.current;
+    if (!container) return;
 
     const model = monaco.editor.createModel(
       useEditorStore.getState().content,
       'typescript',
       monaco.Uri.parse('file:///index.ts'),
-    )
+    );
 
     const editor = monaco.editor.create(container, {
       model,
@@ -58,23 +58,23 @@ export function MonacoEditor() {
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       padding: { top: 16 },
-    })
-    editorRef.current = editor
+    });
+    editorRef.current = editor;
 
     // The theme's monospace font may still be downloading when Monaco first measures character
     // widths — re-measure once it's actually available to avoid misaligned columns/cursor.
-    void document.fonts.ready.then(() => monaco.editor.remeasureFonts())
+    void document.fonts.ready.then(() => monaco.editor.remeasureFonts());
 
     const subscription = editor.onDidChangeModelContent(() => {
-      useEditorStore.getState().setContent(model.getValue())
-    })
+      useEditorStore.getState().setContent(model.getValue());
+    });
 
     return () => {
-      subscription.dispose()
-      editor.dispose()
-      model.dispose()
-    }
-  }, [])
+      subscription.dispose();
+      editor.dispose();
+      model.dispose();
+    };
+  }, []);
 
-  return <div ref={containerRef} className={styles.container} />
+  return <div ref={containerRef} className={styles.container} />;
 }

@@ -1,12 +1,12 @@
-import { THEME_PRESETS, type PresetThemeId } from './presets'
-import { useThemeStore } from './store'
-import styles from './ThemeSwitcher.module.css'
+import { THEME_PRESETS, type PresetThemeId } from './presets';
+import { useThemeStore } from './store';
+import styles from './ThemeSwitcher.module.css';
 
-const PRESET_IDS = Object.keys(THEME_PRESETS) as PresetThemeId[]
+const PRESET_IDS = Object.keys(THEME_PRESETS) as PresetThemeId[];
 
 export function ThemeSwitcher() {
-  const activeId = useThemeStore((state) => state.activeId)
-  const setPreset = useThemeStore((state) => state.setPreset)
+  const activeId = useThemeStore((state) => state.activeId);
+  const setPreset = useThemeStore((state) => state.setPreset);
 
   return (
     <div className={styles.switcher} role="radiogroup" aria-label="Theme">
@@ -32,5 +32,5 @@ export function ThemeSwitcher() {
         Custom…
       </button>
     </div>
-  )
+  );
 }

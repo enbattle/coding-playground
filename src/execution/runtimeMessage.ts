@@ -1,10 +1,10 @@
-export type ConsoleLevel = 'log' | 'warn' | 'error' | 'info' | 'debug'
+export type ConsoleLevel = 'log' | 'warn' | 'error' | 'info' | 'debug';
 
 export interface RuntimeConsoleMessage {
-  source: 'coding-playground-runtime'
-  type: 'console'
-  level: ConsoleLevel
-  text: string
+  source: 'coding-playground-runtime';
+  type: 'console';
+  level: ConsoleLevel;
+  text: string;
 }
 
 export function isRuntimeConsoleMessage(data: unknown): data is RuntimeConsoleMessage {
@@ -13,5 +13,5 @@ export function isRuntimeConsoleMessage(data: unknown): data is RuntimeConsoleMe
     data !== null &&
     (data as { source?: unknown }).source === 'coding-playground-runtime' &&
     (data as { type?: unknown }).type === 'console'
-  )
+  );
 }

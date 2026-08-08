@@ -11,7 +11,7 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
 ## Conventions
 
 - TypeScript strict mode throughout; no `any` without a comment explaining why it's unavoidable.
-- No semicolons, single quotes, 100-char print width — enforced by Prettier, don't hand-format.
+- Semicolons, single quotes, 100-char print width — enforced by Prettier, don't hand-format.
 - Lint via `oxlint` (not ESLint) — this is the current Vite-scaffold default, faster, mostly
   rule-compatible. Don't add ESLint alongside it.
 - State: Zustand stores, one per concern (settings, files, layout), each with a localStorage

@@ -16,13 +16,13 @@ export type FontKey =
   | 'martian-mono'
   | 'big-shoulders-stencil'
   | 'public-sans'
-  | 'ibm-plex-mono'
+  | 'ibm-plex-mono';
 
 interface FontDefinition {
   /** CSS `font-family` value, including quotes and a fallback stack. */
-  family: string
+  family: string;
   /** The `family=` query segment for the Google Fonts CSS2 API. */
-  googleFontsQuery: string
+  googleFontsQuery: string;
 }
 
 export const ALLOWED_FONTS: Record<FontKey, FontDefinition> = {
@@ -62,23 +62,23 @@ export const ALLOWED_FONTS: Record<FontKey, FontDefinition> = {
     family: "'IBM Plex Mono', ui-monospace, monospace",
     googleFontsQuery: 'IBM+Plex+Mono:wght@400;500',
   },
-}
+};
 
-const loadedHrefs = new Set<string>()
+const loadedHrefs = new Set<string>();
 
 /** Injects a `<link>` for the Google Fonts CSS needed by the given font keys, deduped by URL. */
 export function ensureFontsLoaded(keys: FontKey[]): void {
-  const unique = [...new Set(keys)]
+  const unique = [...new Set(keys)];
   const href =
     'https://fonts.googleapis.com/css2?' +
     unique.map((key) => `family=${ALLOWED_FONTS[key].googleFontsQuery}`).join('&') +
-    '&display=swap'
+    '&display=swap';
 
-  if (loadedHrefs.has(href)) return
-  loadedHrefs.add(href)
+  if (loadedHrefs.has(href)) return;
+  loadedHrefs.add(href);
 
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = href
-  document.head.appendChild(link)
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
 }

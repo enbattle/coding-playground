@@ -1,5 +1,5 @@
-import EditorWorker from 'monaco-editor/editor/editor.worker?worker'
-import TypeScriptWorker from 'monaco-editor/languages/features/typescript/ts.worker?worker'
+import EditorWorker from 'monaco-editor/editor/editor.worker?worker';
+import TypeScriptWorker from 'monaco-editor/languages/features/typescript/ts.worker?worker';
 
 /**
  * Monaco needs to know how to spin up its background workers (one for generic editor features,
@@ -14,8 +14,8 @@ import TypeScriptWorker from 'monaco-editor/languages/features/typescript/ts.wor
 self.MonacoEnvironment = {
   getWorker(_workerId: string, label: string) {
     if (label === 'typescript' || label === 'javascript') {
-      return new TypeScriptWorker()
+      return new TypeScriptWorker();
     }
-    return new EditorWorker()
+    return new EditorWorker();
   },
-}
+};

@@ -1,27 +1,27 @@
-import TranspileWorker from './transpile.worker?worker'
-import type { TranspileRequest, TranspileResponse } from './transpile.worker'
+import TranspileWorker from './transpile.worker?worker';
+import type { TranspileRequest, TranspileResponse } from './transpile.worker';
 
-let worker: Worker | null = null
-let nextId = 0
-const pending = new Map<number, (response: TranspileResponse) => void>()
+let worker: Worker | null = null;
+let nextId = 0;
+const pending = new Map<number, (response: TranspileResponse) => void>();
 
 function getWorker(): Worker {
-  if (worker) return worker
-  worker = new TranspileWorker()
+  if (worker) return worker;
+  worker = new TranspileWorker();
   worker.onmessage = (event: MessageEvent<TranspileResponse>) => {
-    const resolve = pending.get(event.data.id)
-    if (!resolve) return
-    pending.delete(event.data.id)
-    resolve(event.data)
-  }
-  return worker
+    const resolve = pending.get(event.data.id);
+    if (!resolve) return;
+    pending.delete(event.data.id);
+    resolve(event.data);
+  };
+  return worker;
 }
 
 export function transpile(source: string): Promise<TranspileResponse> {
-  const id = nextId++
-  const request: TranspileRequest = { id, source }
+  const id = nextId++;
+  const request: TranspileRequest = { id, source };
   return new Promise((resolve) => {
-    pending.set(id, resolve)
-    getWorker().postMessage(request)
-  })
+    pending.set(id, resolve);
+    getWorker().postMessage(request);
+  });
 }

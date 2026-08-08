@@ -1,7 +1,7 @@
-import * as monaco from 'monaco-editor/editor/editor.api'
-import { THEME_PRESETS, type PresetThemeId } from '../theme/presets'
-import type { ThemeTokens } from '../theme/tokens'
-import { resolveActiveTokens, useThemeStore } from '../theme/store'
+import * as monaco from 'monaco-editor/editor/editor.api';
+import { THEME_PRESETS, type PresetThemeId } from '../theme/presets';
+import type { ThemeTokens } from '../theme/tokens';
+import { resolveActiveTokens, useThemeStore } from '../theme/store';
 
 function toMonacoTheme(tokens: ThemeTokens): monaco.editor.IStandaloneThemeData {
   return {
@@ -36,45 +36,45 @@ function toMonacoTheme(tokens: ThemeTokens): monaco.editor.IStandaloneThemeData 
       'scrollbarSlider.background': withAlpha(tokens.colorTextDim, 0.2),
       'scrollbarSlider.hoverBackground': withAlpha(tokens.colorTextDim, 0.3),
     },
-  }
+  };
 }
 
 /** Monaco color values must be `#rrggbb`/`#rgb` with no alpha suffix for the `rules` foreground field. */
 function stripHash(color: string): string {
-  return color.startsWith('#') ? color.slice(1) : color
+  return color.startsWith('#') ? color.slice(1) : color;
 }
 
 /** Best-effort: only handles `#rrggbb` input, which is all our presets use for accent/text colors. */
 function withAlpha(color: string, alpha: number): string {
-  if (!color.startsWith('#') || color.length !== 7) return color
+  if (!color.startsWith('#') || color.length !== 7) return color;
   const value = Math.round(alpha * 255)
     .toString(16)
-    .padStart(2, '0')
-  return `${color}${value}`
+    .padStart(2, '0');
+  return `${color}${value}`;
 }
 
-const definedThemeIds = new Set<string>()
+const definedThemeIds = new Set<string>();
 
 function ensureThemeDefined(id: string, tokens: ThemeTokens) {
-  if (definedThemeIds.has(id)) return
-  monaco.editor.defineTheme(id, toMonacoTheme(tokens))
-  definedThemeIds.add(id)
+  if (definedThemeIds.has(id)) return;
+  monaco.editor.defineTheme(id, toMonacoTheme(tokens));
+  definedThemeIds.add(id);
 }
 
 /** Defines and applies the Monaco theme matching the currently active app theme, then keeps it in sync. */
 export function syncMonacoTheme(): void {
   const apply = () => {
-    const tokens = resolveActiveTokens(useThemeStore.getState())
-    ensureThemeDefined(tokens.id, tokens)
-    monaco.editor.setTheme(tokens.id)
-  }
+    const tokens = resolveActiveTokens(useThemeStore.getState());
+    ensureThemeDefined(tokens.id, tokens);
+    monaco.editor.setTheme(tokens.id);
+  };
 
   // Curated presets are known up front, so their Monaco themes can be defined immediately —
   // avoids a flash of the wrong theme while a preset's tokens are first resolved.
   for (const id of Object.keys(THEME_PRESETS) as PresetThemeId[]) {
-    ensureThemeDefined(id, THEME_PRESETS[id])
+    ensureThemeDefined(id, THEME_PRESETS[id]);
   }
 
-  apply()
-  useThemeStore.subscribe(apply)
+  apply();
+  useThemeStore.subscribe(apply);
 }

@@ -1,4 +1,4 @@
-import type { ThemeTokens } from './tokens'
+import type { ThemeTokens } from './tokens';
 
 /**
  * The curated theme set, chosen from the 5-direction design comparison. Values are carried over
@@ -29,7 +29,7 @@ const instrumentPanel: ThemeTokens = {
   trackingDisplay: '0.12em',
   transformDisplay: 'uppercase',
   motif: 'instrument-panel',
-}
+};
 
 const terminalBotanical: ThemeTokens = {
   id: 'terminal-botanical',
@@ -54,7 +54,7 @@ const terminalBotanical: ThemeTokens = {
   trackingDisplay: '0em',
   transformDisplay: 'none',
   motif: 'terminal-botanical',
-}
+};
 
 const cartographicBlueprint: ThemeTokens = {
   id: 'cartographic-blueprint',
@@ -79,14 +79,14 @@ const cartographicBlueprint: ThemeTokens = {
   trackingDisplay: '0.03em',
   transformDisplay: 'uppercase',
   motif: 'cartographic-blueprint',
-}
+};
 
 export const THEME_PRESETS = {
   'instrument-panel': instrumentPanel,
   'terminal-botanical': terminalBotanical,
   'cartographic-blueprint': cartographicBlueprint,
-} satisfies Record<string, ThemeTokens>
+} satisfies Record<string, ThemeTokens>;
 
-export type PresetThemeId = keyof typeof THEME_PRESETS
+export type PresetThemeId = keyof typeof THEME_PRESETS;
 
-export const DEFAULT_THEME_ID: PresetThemeId = 'instrument-panel'
+export const DEFAULT_THEME_ID: PresetThemeId = 'instrument-panel';

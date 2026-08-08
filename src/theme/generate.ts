@@ -1,4 +1,4 @@
-import type { ThemeTokens } from './tokens'
+import type { ThemeTokens } from './tokens';
 
 /**
  * Placeholder for the "describe your own theme" feature (type a prompt, get a matching theme —
@@ -25,8 +25,8 @@ import type { ThemeTokens } from './tokens'
  *   4. Client calls `useThemeStore.getState().setCustomTheme(tokens)`.
  */
 export async function generateThemeFromPrompt(prompt: string): Promise<ThemeTokens> {
-  void prompt
+  void prompt;
   throw new Error(
     'generateThemeFromPrompt is not implemented yet — it requires a backend endpoint to hold the LLM API key. See the comment on this function for the intended implementation.',
-  )
+  );
 }
