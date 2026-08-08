@@ -44,6 +44,25 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   hand against an actual browser, not by the unit test suite. Phase 9 formalizes real-browser
   coverage into a Playwright e2e suite — don't try to make Monaco work under jsdom in the meantime.
 
+## Execution/sandbox notes
+
+- The runtime iframe (`sandbox="allow-scripts"`, no `allow-same-origin`) has an opaque origin and
+  cannot load blob URLs created outside itself — including ones the parent page creates. All blob
+  URLs for a run are created _inside_ the iframe by its own bootstrap script, from source text
+  embedded in the harness (see `src/execution/sandboxHarness.ts`, ADR 0006). Don't go back to
+  creating blob URLs on the main thread and passing the URLs in.
+- Relative import specifiers (`./utils`) cannot resolve against a `blob:` URL referrer — it's a
+  non-hierarchical scheme, so the browser throws before even consulting the import map. Compiled
+  code has its `./name` specifiers rewritten to bare `name` specifiers
+  (`src/execution/rewriteRelativeImports.ts`) to route around this; the import map's keys are bare
+  to match. This only supports the flat, no-subdirectory file model this project has — don't extend
+  it to handle `../` without reconsidering the whole scheme.
+- When testing Monaco input via Playwright's `keyboard.type()`, auto-closing brackets can duplicate
+  closing braces (Monaco's "type over" detection doesn't always fire the same way for synthetic
+  fast-typed input as for a real human) — a stray extra `}` from a test script is a test artifact,
+  not necessarily a real bug. Verify by reading back `.view-lines` content before chasing it as a
+  product defect.
+
 ## Commands
 
 - `npm run dev` — dev server

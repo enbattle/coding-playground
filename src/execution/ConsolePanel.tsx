@@ -17,7 +17,7 @@ export function ConsolePanel() {
     <div className={styles.pane}>
       <div className={styles.head}>
         <span className={status === 'running' ? `${styles.dot} ${styles.running}` : styles.dot} />
-        Console · {status === 'running' ? 'running' : 'ready'}
+        {status === 'running' ? 'Running' : 'Ready'}
       </div>
       <div className={styles.body}>
         {entries.length === 0 && (

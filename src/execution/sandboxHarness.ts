@@ -2,10 +2,11 @@
  * Runs inside a sandboxed iframe (`sandbox="allow-scripts"`, no `allow-same-origin` — ADR 0002)
  * with a fresh iframe per run (see RuntimeFrame.tsx), so there's no state leakage between runs.
  *
- * Deliberately does NOT wrap the injected code in a try/catch: once package imports land (Phase
- * 6), user code may contain top-level `import`/`export`, which is a syntax error inside a block
- * statement. The global `error` and `unhandledrejection` listeners below catch synchronous and
- * asynchronous failures alike without needing to wrap the module body at all.
+ * Cross-file imports (ADR 0006): blob URLs are origin-scoped, and this iframe deliberately has an
+ * opaque origin different from the parent page's, so it cannot load blob URLs the parent creates.
+ * Every file's compiled JS is instead embedded as text and turned into blob URLs *by a script
+ * running inside the iframe itself* — same-origin to itself — which then `document.write()`s the
+ * import map and the entry's module script tag before the parser reaches them.
  */
 
 const RUNTIME_SETUP = `
@@ -30,19 +31,67 @@ window.addEventListener('unhandledrejection', (event) => {
 })
 `;
 
-function escapeForInlineScript(code: string): string {
-  return code.replace(/<\/script/gi, '<\\/script');
+export interface HarnessInput {
+  /** Path of the file to execute, e.g. `/index.ts`. */
+  entryPath: string;
+  /** Every transpilable file's compiled JS, keyed by path. */
+  files: Record<string, string>;
+  /** Import specifier (e.g. `./utils`, `./utils.ts`) → path key into `files`, for non-entry files. */
+  importSpecifiers: Record<string, string>;
+  /** Raw content of `/index.html`, if the project has one — used as the preview document as-is. */
+  htmlContent: string | null;
 }
 
-export function buildRuntimeHarness(code: string): string {
-  return `<!doctype html>
+function escapeForInlineScript(text: string): string {
+  return text.replace(/<\/script/gi, '<\\/script');
+}
+
+function buildBootstrap(
+  input: Pick<HarnessInput, 'entryPath' | 'files' | 'importSpecifiers'>,
+): string {
+  const filesJson = escapeForInlineScript(JSON.stringify(input.files));
+  const specifiersJson = escapeForInlineScript(JSON.stringify(input.importSpecifiers));
+  const entryPathJson = JSON.stringify(input.entryPath);
+
+  return `
+var __cpFiles = ${filesJson};
+var __cpUrls = {};
+for (var __cpPath in __cpFiles) {
+  __cpUrls[__cpPath] = URL.createObjectURL(new Blob([__cpFiles[__cpPath]], { type: 'text/javascript' }));
+}
+var __cpImportMap = {};
+var __cpSpecifiers = ${specifiersJson};
+for (var __cpSpecifier in __cpSpecifiers) {
+  __cpImportMap[__cpSpecifier] = __cpUrls[__cpSpecifiers[__cpSpecifier]];
+}
+var __cpEntryUrl = __cpUrls[${entryPathJson}];
+document.write(
+  '<scr' + 'ipt type="importmap">' + JSON.stringify({ imports: __cpImportMap }) + '</scr' + 'ipt>' +
+  '<scr' + 'ipt type="module" src="' + __cpEntryUrl + '"></scr' + 'ipt>'
+);
+`;
+}
+
+export function buildRuntimeHarness(input: HarnessInput): string {
+  const setupTag = `<script>${RUNTIME_SETUP}</script>`;
+  const bootstrapTag = `<script>${buildBootstrap(input)}</script>`;
+  const headTags = `${setupTag}${bootstrapTag}`;
+
+  if (input.htmlContent === null) {
+    return `<!doctype html>
 <html>
-  <head><meta charset="utf-8" /></head>
-  <body>
-    <script type="module">
-${RUNTIME_SETUP}
-${escapeForInlineScript(code)}
-    </script>
-  </body>
+  <head>
+    <meta charset="utf-8" />
+    ${headTags}
+  </head>
+  <body></body>
 </html>`;
+  }
+
+  // The runtime setup + bootstrap must run before the module script they `document.write()` is
+  // reached, so they're inserted right after <head> (or prepended if there's no <head> at all).
+  const html = input.htmlContent;
+  return /<head[^>]*>/i.test(html)
+    ? html.replace(/<head[^>]*>/i, (match) => `${match}${headTags}`)
+    : `${headTags}${html}`;
 }
