@@ -17,6 +17,9 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
 - State: Zustand stores, one per concern (settings, files, layout), each with a localStorage
   persistence middleware where the plan calls for persistence.
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
+- New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
+  to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
+  direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
   `src/editor/`, `src/execution/`, `src/files/`, `src/settings/`, `src/packages-panel/`,
   `src/layout/`, `src/state/`, `src/theme/`.
@@ -40,9 +43,9 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   `monaco-editor/languages/definitions/typescript/register`. Both are side-effect imports that must
   happen before creating a model with `languageId: 'typescript'`.
 - Monaco cannot mount in jsdom (`window.matchMedia` and friends are missing) — `MonacoEditor` is
-  mocked out in Vitest tests (see `src/App.test.tsx`); real editor/execution behavior is verified by
-  hand against an actual browser, not by the unit test suite. Phase 9 formalizes real-browser
-  coverage into a Playwright e2e suite — don't try to make Monaco work under jsdom in the meantime.
+  mocked out in Vitest tests (see `src/App.test.tsx`). See `docs/testing-strategy.md` for the full
+  reasoning on what's unit-tested vs. verified by hand against a real browser, and why — don't try
+  to make Monaco work under jsdom in the meantime.
 
 ## Execution/sandbox notes
 
