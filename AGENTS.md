@@ -27,6 +27,23 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   lives in `src/theme/motifs.tsx`, not in tokens. See
   `docs/decisions/0004-theme-tokens-and-ai-ready-generation.md` before changing this system.
 
+## Monaco integration notes
+
+- Import monaco-editor subpaths _without_ the `esm/vs/` prefix (e.g.
+  `monaco-editor/editor/editor.api`, not `monaco-editor/esm/vs/editor/editor.api`) — the package's
+  `exports` map already implies that prefix; including it resolves to a nonexistent doubled path.
+- `monaco.languages.typescript` is a deprecated stub (`{ deprecated: true }`) in this monaco-editor
+  version. The real API (`typescriptDefaults`, `ScriptTarget`, `ModuleKind`, `ModuleResolutionKind`,
+  etc.) is now direct named exports from `monaco-editor/languages/features/typescript/register`, and
+  that module's `ModuleResolutionKind` only has `Classic`/`NodeJs` (no `Bundler`). The base language
+  ID + tokenizer registration is a separate import:
+  `monaco-editor/languages/definitions/typescript/register`. Both are side-effect imports that must
+  happen before creating a model with `languageId: 'typescript'`.
+- Monaco cannot mount in jsdom (`window.matchMedia` and friends are missing) — `MonacoEditor` is
+  mocked out in Vitest tests (see `src/App.test.tsx`); real editor/execution behavior is verified by
+  hand against an actual browser, not by the unit test suite. Phase 9 formalizes real-browser
+  coverage into a Playwright e2e suite — don't try to make Monaco work under jsdom in the meantime.
+
 ## Commands
 
 - `npm run dev` — dev server

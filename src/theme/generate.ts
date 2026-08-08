@@ -19,9 +19,9 @@ import type { ThemeTokens } from './tokens'
  *      `fontDisplay`/`fontBody`/`fontMono` must be constrained to `FontKey` (an enum of the fonts
  *      already vetted and loadable — see fonts.ts), never a free-form string, so the model can only
  *      pick from fonts we already trust and can serve.
- *   3. Before returning, validate contrast: colorText vs colorBg and colorTextStrong vs colorBg
- *      must both meet at least WCAG AA (4.5:1) — reject or clamp toward the nearest compliant value
- *      rather than trusting the model's color choice outright.
+ *   3. Before returning, validate contrast: colorText, colorTextStrong, and colorDanger must each
+ *      meet at least WCAG AA (4.5:1) against colorBg — reject or clamp toward the nearest compliant
+ *      value rather than trusting the model's color choice outright.
  *   4. Client calls `useThemeStore.getState().setCustomTheme(tokens)`.
  */
 export async function generateThemeFromPrompt(prompt: string): Promise<ThemeTokens> {

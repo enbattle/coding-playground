@@ -83,80 +83,8 @@
   cursor: pointer;
 }
 
-.editorPane {
+.editorHost {
   height: 100%;
-  padding: 18px 20px;
-  font-family: var(--cp-font-mono);
-  font-size: 13.5px;
-  line-height: 24px;
-}
-
-.line {
-  white-space: pre;
-}
-
-.ln {
-  display: inline-block;
-  width: 20px;
-  margin-right: 16px;
-  color: var(--cp-color-text-dim);
-  text-align: right;
-  font-size: 11px;
-}
-
-.kw {
-  color: var(--cp-color-accent);
-}
-.fn {
-  color: var(--cp-color-accent-2);
-}
-.punct {
-  color: var(--cp-color-text-dim);
-}
-.var {
-  color: var(--cp-color-text-strong);
-}
-.str {
-  color: var(--cp-color-text);
-}
-
-.consolePane {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--cp-color-border);
-}
-
-.consoleHead {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--cp-color-border);
-  font-family: var(--cp-font-body);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--cp-color-text-dim);
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--cp-color-accent);
-}
-
-.consoleBody {
-  padding: 16px;
-  font-family: var(--cp-font-mono);
-  font-size: 13px;
-  color: var(--cp-color-accent);
-}
-
-.consoleBody::before {
-  content: '▸ ';
-  color: var(--cp-color-text-dim);
 }
 
 .footer {

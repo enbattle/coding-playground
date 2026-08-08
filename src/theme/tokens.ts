@@ -22,6 +22,7 @@ export interface ThemeTokens {
   colorTextStrong: string
   colorAccent: string
   colorAccent2: string
+  colorDanger: string
 
   radiusSm: string
   radiusMd: string
@@ -50,6 +51,7 @@ const CSS_VAR_MAP: Record<
   colorTextStrong: '--cp-color-text-strong',
   colorAccent: '--cp-color-accent',
   colorAccent2: '--cp-color-accent-2',
+  colorDanger: '--cp-color-danger',
   radiusSm: '--cp-radius-sm',
   radiusMd: '--cp-radius-md',
   radiusLg: '--cp-radius-lg',
