@@ -7,32 +7,14 @@ import 'monaco-editor/languages/definitions/typescript/register';
 // files render as plain text — a deliberate scope cut, not an oversight.
 import 'monaco-editor/languages/definitions/html/register';
 import 'monaco-editor/languages/definitions/css/register';
-// The language service itself (diagnostics, completions) — monaco-editor 0.56 moved this out from
-// under `monaco.languages.typescript` (now a deprecated stub) to direct named exports.
-import {
-  typescriptDefaults,
-  ScriptTarget,
-  ModuleKind,
-  ModuleResolutionKind,
-} from 'monaco-editor/languages/features/typescript/register';
 import { useEffect, useRef } from 'react';
 import { useFilesStore } from '../files/store';
 import { syncMonacoTheme } from './monacoTheme';
+import { syncMonacoCompilerOptions } from './monacoCompilerOptions';
+import { useDiagnosticsStore, type DiagnosticEntry, type DiagnosticSeverity } from './diagnostics';
 import styles from './MonacoEditor.module.css';
 
-typescriptDefaults.setCompilerOptions({
-  // This trimmed-down ScriptTarget enum tops out at ESNext (no discrete ES2022/ES2023 members).
-  target: ScriptTarget.ESNext,
-  module: ModuleKind.ESNext,
-  // This API predates TS's 'bundler' resolution mode — 'NodeJs' is the closest available option.
-  // Revisit once Phase 6 (packages) needs resolution to actually match the esm.sh import map.
-  moduleResolution: ModuleResolutionKind.NodeJs,
-  strict: true,
-  esModuleInterop: true,
-  skipLibCheck: true,
-});
-
-let themeSynced = false;
+let setupDone = false;
 
 function languageForPath(path: string): string {
   const ext = path.slice(path.lastIndexOf('.') + 1).toLowerCase();
@@ -40,6 +22,19 @@ function languageForPath(path: string): string {
   if (ext === 'html') return 'html';
   if (ext === 'css') return 'css';
   return 'plaintext'; // includes .json — see the import comment above
+}
+
+function severityFrom(severity: monaco.MarkerSeverity): DiagnosticSeverity {
+  switch (severity) {
+    case monaco.MarkerSeverity.Error:
+      return 'error';
+    case monaco.MarkerSeverity.Warning:
+      return 'warning';
+    case monaco.MarkerSeverity.Info:
+      return 'info';
+    default:
+      return 'hint';
+  }
 }
 
 export function MonacoEditor() {
@@ -50,9 +45,10 @@ export function MonacoEditor() {
   const activePath = useFilesStore((state) => state.activePath);
 
   useEffect(() => {
-    if (!themeSynced) {
+    if (!setupDone) {
       syncMonacoTheme();
-      themeSynced = true;
+      syncMonacoCompilerOptions();
+      setupDone = true;
     }
   }, []);
 
@@ -84,6 +80,46 @@ export function MonacoEditor() {
     };
   }, []);
 
+  // Mirrors Monaco's own diagnostics (the same ones that power the red squiggles) into a plain
+  // store the Problems panel can read — Monaco's marker events are global, not per-editor, so this
+  // only needs to run once regardless of how many files are open.
+  useEffect(() => {
+    const disposable = monaco.editor.onDidChangeMarkers((uris) => {
+      for (const uri of uris) {
+        const markers = monaco.editor.getModelMarkers({ resource: uri });
+        const entries: DiagnosticEntry[] = markers.map((marker) => ({
+          path: uri.path,
+          message: marker.message,
+          severity: severityFrom(marker.severity),
+          line: marker.startLineNumber,
+          column: marker.startColumn,
+        }));
+        useDiagnosticsStore.getState().setForPath(uri.path, entries);
+      }
+    });
+    return () => disposable.dispose();
+  }, []);
+
+  // Click-to-jump from the Problems panel: switch to the file, move the model + cursor there
+  // synchronously (can't wait for the reconcile effect below — revealLineInCenter needs to run
+  // against the *new* model, not whatever was showing before).
+  useEffect(() => {
+    return useDiagnosticsStore.subscribe((state) => {
+      const target = state.revealTarget;
+      if (!target) return;
+      useFilesStore.getState().setActivePath(target.path);
+      const editor = editorRef.current;
+      const model = modelsRef.current.get(target.path);
+      if (editor && model) {
+        if (editor.getModel() !== model) editor.setModel(model);
+        editor.revealLineInCenter(target.line);
+        editor.setPosition({ lineNumber: target.line, column: target.column });
+        editor.focus();
+      }
+      useDiagnosticsStore.getState().clearReveal();
+    });
+  }, []);
+
   // Reconciles the model cache against the current file set, then makes sure the active file's
   // model is the one showing. Keyed on `order` (identity changes only on create/rename/delete),
   // never on file *content* — so this doesn't run on every keystroke.
@@ -97,6 +133,7 @@ export function MonacoEditor() {
       if (!currentPaths.has(path)) {
         model.dispose();
         models.delete(path);
+        useDiagnosticsStore.getState().clearPath(path);
       }
     }
 

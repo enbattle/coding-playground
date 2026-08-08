@@ -46,6 +46,12 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   mocked out in Vitest tests (see `src/App.test.tsx`). See `docs/testing-strategy.md` for the full
   reasoning on what's unit-tested vs. verified by hand against a real browser, and why — don't try
   to make Monaco work under jsdom in the meantime.
+- Monaco's `DiagnosticsAdapter` (in `languageFeatures.js`) already subscribes to
+  `typescriptDefaults.onDidChange` and recomputes every open model's diagnostics whenever
+  `setCompilerOptions` is called — confirmed by hand (toggling `strict` live-changed a diagnostic's
+  severity and message with no re-edit). It's easy to miss this reading only the per-model
+  `onDidChangeContent` listener a few lines above it in the source and wrongly conclude you need to
+  force revalidation yourself (e.g. a no-op edit) after a compiler-option change — you don't.
 
 ## Execution/sandbox notes
 
@@ -60,11 +66,11 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   (`src/execution/rewriteRelativeImports.ts`) to route around this; the import map's keys are bare
   to match. This only supports the flat, no-subdirectory file model this project has — don't extend
   it to handle `../` without reconsidering the whole scheme.
-- When testing Monaco input via Playwright's `keyboard.type()`, auto-closing brackets can duplicate
-  closing braces (Monaco's "type over" detection doesn't always fire the same way for synthetic
-  fast-typed input as for a real human) — a stray extra `}` from a test script is a test artifact,
-  not necessarily a real bug. Verify by reading back `.view-lines` content before chasing it as a
-  product defect.
+- When testing Monaco input via Playwright, prefer `page.keyboard.insertText(...)` over
+  `page.keyboard.type(...)` — `type()` sends real keydown events and can trip Monaco's
+  auto-closing-bracket "type over" detection, duplicating closing braces in ways a real human
+  typing wouldn't. If you do see a stray extra `}` from a test script, verify by reading back
+  `.view-lines` content before chasing it as a product defect — it may just be the test input.
 
 ## Commands
 

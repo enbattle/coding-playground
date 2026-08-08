@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ENTRY_PATH, isTranspilable, useFilesStore } from '../files/store';
+import { getCompilerOptionValues } from '../settings/compilerOptionsStore';
 import { transpile } from './transpileClient';
 import { useExecutionStore } from './store';
 import { rewriteRelativeImportsToBareSpecifiers } from './rewriteRelativeImports';
@@ -26,9 +27,13 @@ export function useRunner() {
     store.clear();
     store.setStatus('running');
 
+    const compilerOptions = getCompilerOptionValues();
     const tsFiles = Object.values(files).filter((file) => isTranspilable(file.path));
     const transpiled = await Promise.all(
-      tsFiles.map(async (file) => ({ file, result: await transpile(file.content) })),
+      tsFiles.map(async (file) => ({
+        file,
+        result: await transpile(file.content, compilerOptions),
+      })),
     );
 
     for (const { file, result } of transpiled) {

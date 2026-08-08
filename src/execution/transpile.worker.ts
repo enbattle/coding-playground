@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import type { CompilerOptionValues, JsxOption, TargetOption } from '../settings/compilerOptions';
 
 /**
  * Runs entirely off the main thread. Unrelated to Monaco's own TS language-service worker
@@ -10,6 +11,7 @@ import * as ts from 'typescript';
 export interface TranspileRequest {
   id: number;
   source: string;
+  options: CompilerOptionValues;
 }
 
 export interface TranspileResponse {
@@ -18,16 +20,40 @@ export interface TranspileResponse {
   diagnostics: string[];
 }
 
+// This worker uses the real `typescript` package's full enums (unlike Monaco's trimmed ones — see
+// ADR 0007), but is still restricted to the curated option set so behavior matches what the user
+// saw in the editor's live diagnostics.
+const TARGET_MAP: Record<TargetOption, ts.ScriptTarget> = {
+  ES5: ts.ScriptTarget.ES5,
+  ES2015: ts.ScriptTarget.ES2015,
+  ES2017: ts.ScriptTarget.ES2017,
+  ES2019: ts.ScriptTarget.ES2019,
+  ES2020: ts.ScriptTarget.ES2020,
+  ESNext: ts.ScriptTarget.ESNext,
+};
+
+const JSX_MAP: Record<JsxOption, ts.JsxEmit> = {
+  none: ts.JsxEmit.None,
+  preserve: ts.JsxEmit.Preserve,
+  'react-jsx': ts.JsxEmit.ReactJSX,
+};
+
 self.onmessage = (event: MessageEvent<TranspileRequest>) => {
-  const { id, source } = event.data;
+  const { id, source, options } = event.data;
 
   const result = ts.transpileModule(source, {
     compilerOptions: {
-      target: ts.ScriptTarget.ES2022,
+      // Fixed regardless of user choice — see ADR 0007. Execution hard-requires ESM output.
       module: ts.ModuleKind.ESNext,
       moduleResolution: ts.ModuleResolutionKind.Bundler,
-      esModuleInterop: true,
       isolatedModules: true,
+      target: TARGET_MAP[options.target],
+      jsx: JSX_MAP[options.jsx],
+      strict: options.strict,
+      esModuleInterop: options.esModuleInterop,
+      experimentalDecorators: options.experimentalDecorators,
+      noUnusedLocals: options.noUnusedLocals,
+      noUnusedParameters: options.noUnusedParameters,
     },
     reportDiagnostics: true,
   });

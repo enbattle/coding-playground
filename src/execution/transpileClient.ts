@@ -1,5 +1,6 @@
 import TranspileWorker from './transpile.worker?worker';
 import type { TranspileRequest, TranspileResponse } from './transpile.worker';
+import type { CompilerOptionValues } from '../settings/compilerOptions';
 
 let worker: Worker | null = null;
 let nextId = 0;
@@ -17,9 +18,12 @@ function getWorker(): Worker {
   return worker;
 }
 
-export function transpile(source: string): Promise<TranspileResponse> {
+export function transpile(
+  source: string,
+  options: CompilerOptionValues,
+): Promise<TranspileResponse> {
   const id = nextId++;
-  const request: TranspileRequest = { id, source };
+  const request: TranspileRequest = { id, source, options };
   return new Promise((resolve) => {
     pending.set(id, resolve);
     getWorker().postMessage(request);
