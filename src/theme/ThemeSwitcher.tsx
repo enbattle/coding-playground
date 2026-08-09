@@ -6,10 +6,13 @@ import styles from './ThemeSwitcher.module.css';
 const PRESET_IDS = Object.keys(THEME_PRESETS) as PresetThemeId[];
 
 /**
- * A floating pill anchored to the shell's top-right corner (see .stage/.themeDock in
- * AppShell.module.css), not inline header chrome — deliberately moved out of the header so it
- * doesn't compete with code-editing controls for space, and so it sits over the active theme's own
- * decorative motif rather than inside the bounded editor "panel."
+ * A floating pill above the shell (see .stage's flex-column layout in AppShell.module.css),
+ * right-aligned via `align-self: flex-end`, not inline header chrome — deliberately moved out of
+ * the header so it doesn't compete with code-editing controls for space, and so it sits over the
+ * active theme's own decorative motif rather than inside the bounded editor "panel." Stacked in
+ * normal flow with a real gap above the shell rather than absolutely-positioned overlap — the
+ * latter needed hand-tuned negative-offset math that broke (visibly overlapped the header's Run
+ * button) the moment the pill's rendered height didn't match what the offset assumed.
  */
 export function ThemeSwitcher() {
   const [open, setOpen] = useState(false);
