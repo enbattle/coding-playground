@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 
@@ -11,9 +12,16 @@ vi.mock('./editor/MonacoEditor', () => ({
 }));
 
 describe('App', () => {
-  it('renders the app shell with a run control and theme switcher', () => {
+  it('renders the app shell with a run control and a theme switcher trigger', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /run/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Instrument Panel/i })).toBeInTheDocument();
+  });
+
+  it('opens the floating theme switcher to reveal the theme options', async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole('button', { name: /Instrument Panel/i }));
     expect(screen.getByRole('radiogroup', { name: 'Theme' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Terminal Botanical/i })).toBeInTheDocument();
   });
 });

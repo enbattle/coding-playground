@@ -43,53 +43,63 @@ export function AppShell() {
   return (
     <>
       <ThemeMotif motif={tokens.motif} />
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <div className={styles.logo}>
-            coding<b>▪</b>playground
-          </div>
-          <div className={styles.spacer} />
-          <CompilerOptionsPanel />
-          <ThemeSwitcher />
-          <div className={styles.kbd}>⌘K</div>
-          <button type="button" className={styles.run} onClick={() => void run()}>
-            ▸ Run
-          </button>
-        </header>
-        <SplitPane
-          left={
-            <div className={styles.editorHost}>
-              <MonacoEditor />
+      <div className={styles.stage}>
+        <ThemeSwitcher />
+        <div className={styles.shell}>
+          <header className={styles.header}>
+            <div className={styles.logo}>
+              coding<b>▪</b>playground
             </div>
-          }
-          right={
-            <div className={styles.rightPane}>
-              <div className={styles.rightTabs}>
-                <TabButton active={rightTab === 'console'} onClick={() => setRightTab('console')}>
-                  Console
-                </TabButton>
-                <TabButton active={rightTab === 'problems'} onClick={() => setRightTab('problems')}>
-                  Problems{problemsCount > 0 ? ` (${problemsCount})` : ''}
-                </TabButton>
+            <div className={styles.spacer} />
+            <CompilerOptionsPanel />
+            <div className={styles.kbd}>⌘K</div>
+            <button type="button" className={styles.run} onClick={() => void run()}>
+              ▸ Run
+            </button>
+          </header>
+          <SplitPane
+            left={
+              <div className={styles.editorHost}>
+                <MonacoEditor />
               </div>
-              <div className={styles.rightBody}>
-                <div style={{ display: rightTab === 'console' ? 'block' : 'none', height: '100%' }}>
-                  <ConsolePanel />
+            }
+            right={
+              <div className={styles.rightPane}>
+                <div className={styles.rightTabs}>
+                  <TabButton active={rightTab === 'console'} onClick={() => setRightTab('console')}>
+                    Console
+                  </TabButton>
+                  <TabButton
+                    active={rightTab === 'problems'}
+                    onClick={() => setRightTab('problems')}
+                  >
+                    Problems{problemsCount > 0 ? ` (${problemsCount})` : ''}
+                  </TabButton>
                 </div>
-                <div
-                  style={{ display: rightTab === 'problems' ? 'block' : 'none', height: '100%' }}
-                >
-                  <ProblemsPanel />
+                <div className={styles.rightBody}>
+                  <div
+                    style={{ display: rightTab === 'console' ? 'block' : 'none', height: '100%' }}
+                  >
+                    <ConsolePanel />
+                  </div>
+                  <div
+                    style={{
+                      display: rightTab === 'problems' ? 'block' : 'none',
+                      height: '100%',
+                    }}
+                  >
+                    <ProblemsPanel />
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-        />
-        <RuntimeFrame runId={runId} code={code} />
-        <footer className={styles.footer}>
-          <span>index.ts</span>
-          <span>{tokens.name}</span>
-        </footer>
+            }
+          />
+          <RuntimeFrame runId={runId} code={code} />
+          <footer className={styles.footer}>
+            <span>index.ts</span>
+            <span>{tokens.name}</span>
+          </footer>
+        </div>
       </div>
     </>
   );

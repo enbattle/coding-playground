@@ -1,8 +1,13 @@
+.stage {
+  position: relative;
+  max-width: 1400px;
+  margin: 44px auto 28px;
+  padding: 0 20px;
+}
+
 .shell {
   position: relative;
   z-index: 1;
-  max-width: 1180px;
-  margin: 28px auto;
   border: 1px solid var(--cp-color-border);
   border-radius: var(--cp-radius-lg);
   overflow: hidden;
