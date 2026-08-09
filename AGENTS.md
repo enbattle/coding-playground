@@ -3,10 +3,12 @@
 ## What this is
 
 A TypeScript-first, in-browser coding playground/studio: Monaco editor, client-side TS
-compilation, a sandboxed console + live DOM preview, a curated package allowlist, and a
-thorough settings system. No backend in this phase — everything runs client-side. Full plan
-and phase breakdown: see the plan this repo was bootstrapped from (referenced in commit history
-of the initial scaffold commit) and `docs/decisions/` for the specific architectural calls.
+compilation, a sandboxed console, a curated package allowlist, and a thorough settings system.
+No backend in this phase — everything runs client-side. Single file only for now — multi-file
+editing and the DOM Preview tab were built in Phase 4 and then deliberately rolled back; see ADR
+0008 before reintroducing either. Full plan and phase breakdown: see the plan this repo was
+bootstrapped from (referenced in commit history of the initial scaffold commit) and
+`docs/decisions/` for the specific architectural calls.
 
 ## Conventions
 
@@ -14,15 +16,15 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
 - Semicolons, single quotes, 100-char print width — enforced by Prettier, don't hand-format.
 - Lint via `oxlint` (not ESLint) — this is the current Vite-scaffold default, faster, mostly
   rule-compatible. Don't add ESLint alongside it.
-- State: Zustand stores, one per concern (settings, files, layout), each with a localStorage
+- State: Zustand stores, one per concern (settings, editor, layout), each with a localStorage
   persistence middleware where the plan calls for persistence.
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
 - New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
   direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
-  `src/editor/`, `src/execution/`, `src/files/`, `src/settings/`, `src/packages-panel/`,
-  `src/layout/`, `src/state/`, `src/theme/`.
+  `src/editor/`, `src/execution/`, `src/settings/`, `src/packages-panel/`, `src/layout/`,
+  `src/state/`, `src/theme/`. No `src/files/` right now — see ADR 0008.
 - Theming: every themed value is a `--cp-*` CSS custom property (see `src/theme/tokens.ts`), never
   a literal color/font in component CSS — this is what lets themes multiply without components
   being rebuilt per theme. Exceptions are deliberate and narrow: fonts come only from the
@@ -60,12 +62,11 @@ of the initial scaffold commit) and `docs/decisions/` for the specific architect
   URLs for a run are created _inside_ the iframe by its own bootstrap script, from source text
   embedded in the harness (see `src/execution/sandboxHarness.ts`, ADR 0006). Don't go back to
   creating blob URLs on the main thread and passing the URLs in.
-- Relative import specifiers (`./utils`) cannot resolve against a `blob:` URL referrer — it's a
-  non-hierarchical scheme, so the browser throws before even consulting the import map. Compiled
-  code has its `./name` specifiers rewritten to bare `name` specifiers
-  (`src/execution/rewriteRelativeImports.ts`) to route around this; the import map's keys are bare
-  to match. This only supports the flat, no-subdirectory file model this project has — don't extend
-  it to handle `../` without reconsidering the whole scheme.
+- Single file only right now (ADR 0008) — no import map, no cross-file specifier rewriting. If
+  multi-file returns, re-read ADR 0006 first: relative import specifiers (`./utils`) cannot resolve
+  against a `blob:` URL referrer at all (non-hierarchical scheme, throws before the import map is
+  even consulted), which is why that earlier implementation had to rewrite compiled `./name`
+  specifiers to bare `name` ones matching bare import-map keys.
 - When testing Monaco input via Playwright, prefer `page.keyboard.insertText(...)` over
   `page.keyboard.type(...)` — `type()` sends real keydown events and can trip Monaco's
   auto-closing-bracket "type over" detection, duplicating closing braces in ways a real human

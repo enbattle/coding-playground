@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCompilerOptionsStore } from './compilerOptionsStore';
-import { JSX_OPTIONS, TARGET_OPTIONS, type CompilerOptionValues } from './compilerOptions';
+import { TARGET_OPTIONS, type CompilerOptionValues } from './compilerOptions';
 import styles from './CompilerOptionsPanel.module.css';
 
 type BooleanOptionKey = {
@@ -19,7 +19,6 @@ export function CompilerOptionsPanel() {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const target = useCompilerOptionsStore((state) => state.target);
-  const jsx = useCompilerOptionsStore((state) => state.jsx);
   const setOption = useCompilerOptionsStore((state) => state.setOption);
 
   useEffect(() => {
@@ -63,22 +62,6 @@ export function CompilerOptionsPanel() {
               {TARGET_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {option}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={styles.row}>
-            jsx
-            <select
-              value={jsx}
-              onChange={(event) =>
-                setOption('jsx', event.target.value as CompilerOptionValues['jsx'])
-              }
-            >
-              {JSX_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
                 </option>
               ))}
             </select>

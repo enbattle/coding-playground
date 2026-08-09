@@ -1,8 +1,9 @@
 # coding-playground
 
 A TypeScript-first, in-browser coding playground/studio: a Monaco-powered editor, client-side
-TypeScript compilation, a sandboxed console and live DOM preview, a curated package allowlist, and
-a thorough settings system — no backend, everything runs in your browser.
+TypeScript compilation, a sandboxed console, a curated package allowlist, and a thorough settings
+system — no backend, everything runs in your browser. Single file only for now (see
+`docs/decisions/0008-roll-back-multi-file-and-preview.md`).
 
 Being built step by step; see `AGENTS.md` for conventions and `docs/decisions/` for the
 architectural calls made along the way.

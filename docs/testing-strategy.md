@@ -34,8 +34,9 @@ of manually clicking through the app. This is intentionally throwaway: it lives 
 re-derived fresh each time rather than maintained as a suite.
 
 That's a deliberate, temporary trade-off, not the end state. **Phase 9 formalizes this into a real
-Playwright e2e suite that _is_ committed and runs in CI** (type → run → see output, multi-file
-switch, settings persistence round-trip, share-link round-trip — see the phase plan). Until Phase 9
+Playwright e2e suite that _is_ committed and runs in CI** (type → run → see output, settings
+persistence round-trip, share-link round-trip — see the phase plan; a multi-file-switch scenario
+was originally planned here too, but multi-file was rolled back, see ADR 0008). Until Phase 9
 lands, "verified in a real browser" in a commit message means the ad hoc process described above,
 not automated coverage — there is a real gap between what's proven to work once, by hand, and what
 CI will catch on the next change. Don't read the absence of e2e tests today as an oversight; it's

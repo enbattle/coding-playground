@@ -40,3 +40,11 @@ is torn down, so `useRunner.ts` no longer tracks or revokes URLs itself. The gen
 sandboxed opaque-origin iframes cannot consume blob/object URLs minted outside themselves — applies
 to anything else this project ever hands into that sandbox (e.g. Phase 6 packages, if a
 package's code ever needs to be blob-served rather than fetched from esm.sh directly).
+
+## Addendum (ADR 0008)
+
+Multi-file editing itself was rolled back to single-file-only shortly after this ADR — see ADR 0008. The import-map/cross-file-specifier machinery this ADR describes no longer exists in the
+codebase. Left unedited above (ADRs are a historical record, not maintained in place) because the
+core finding — sandboxed opaque-origin iframes can't consume externally-created blob URLs, so any
+blob URL a run needs must be created _inside_ that run's iframe — is still exactly how the
+single-file harness works today, and will matter again the moment multi-file returns.

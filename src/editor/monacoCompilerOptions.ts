@@ -3,10 +3,9 @@ import {
   ScriptTarget,
   ModuleKind,
   ModuleResolutionKind,
-  JsxEmit,
 } from 'monaco-editor/languages/features/typescript/register';
 import { useCompilerOptionsStore } from '../settings/compilerOptionsStore';
-import type { JsxOption, TargetOption } from '../settings/compilerOptions';
+import type { TargetOption } from '../settings/compilerOptions';
 
 // Monaco's trimmed ScriptTarget enum tops out at ESNext — see ADR 0007 for why the panel's option
 // set is restricted to values both this and the execution worker's real `typescript` package share.
@@ -17,12 +16,6 @@ const TARGET_MAP: Record<TargetOption, ScriptTarget> = {
   ES2019: ScriptTarget.ES2019,
   ES2020: ScriptTarget.ES2020,
   ESNext: ScriptTarget.ESNext,
-};
-
-const JSX_MAP: Record<JsxOption, JsxEmit> = {
-  none: JsxEmit.None,
-  preserve: JsxEmit.Preserve,
-  'react-jsx': JsxEmit.ReactJSX,
 };
 
 /**
@@ -44,7 +37,6 @@ export function syncMonacoCompilerOptions(): void {
       // resolution mode; 'NodeJs' is the closest available option in Monaco's trimmed enum.
       module: ModuleKind.ESNext,
       moduleResolution: ModuleResolutionKind.NodeJs,
-      jsx: JSX_MAP[options.jsx],
       strict: options.strict,
       esModuleInterop: options.esModuleInterop,
       experimentalDecorators: options.experimentalDecorators,

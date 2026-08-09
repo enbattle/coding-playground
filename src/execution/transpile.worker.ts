@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import type { CompilerOptionValues, JsxOption, TargetOption } from '../settings/compilerOptions';
+import type { CompilerOptionValues, TargetOption } from '../settings/compilerOptions';
 
 /**
  * Runs entirely off the main thread. Unrelated to Monaco's own TS language-service worker
@@ -32,12 +32,6 @@ const TARGET_MAP: Record<TargetOption, ts.ScriptTarget> = {
   ESNext: ts.ScriptTarget.ESNext,
 };
 
-const JSX_MAP: Record<JsxOption, ts.JsxEmit> = {
-  none: ts.JsxEmit.None,
-  preserve: ts.JsxEmit.Preserve,
-  'react-jsx': ts.JsxEmit.ReactJSX,
-};
-
 self.onmessage = (event: MessageEvent<TranspileRequest>) => {
   const { id, source, options } = event.data;
 
@@ -48,7 +42,6 @@ self.onmessage = (event: MessageEvent<TranspileRequest>) => {
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       isolatedModules: true,
       target: TARGET_MAP[options.target],
-      jsx: JSX_MAP[options.jsx],
       strict: options.strict,
       esModuleInterop: options.esModuleInterop,
       experimentalDecorators: options.experimentalDecorators,

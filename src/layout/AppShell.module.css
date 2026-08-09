@@ -104,18 +104,6 @@
   min-height: 0;
 }
 
-.previewEmpty {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  text-align: center;
-  font-family: var(--cp-font-body);
-  font-size: 13px;
-  color: var(--cp-color-text-dim);
-}
-
 .footer {
   display: flex;
   justify-content: space-between;

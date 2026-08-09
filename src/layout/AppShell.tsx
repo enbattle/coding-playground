@@ -2,8 +2,6 @@ import { useState, type ReactNode } from 'react';
 import { MonacoEditor } from '../editor/MonacoEditor';
 import { ProblemsPanel } from '../editor/ProblemsPanel';
 import { useProblemsCount } from '../editor/diagnostics';
-import { FileTabs } from '../files/FileTabs';
-import { useFilesStore } from '../files/store';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunner } from '../execution/useRunner';
@@ -14,7 +12,7 @@ import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 import { SplitPane } from './SplitPane';
 import styles from './AppShell.module.css';
 
-type RightTab = 'console' | 'preview' | 'problems';
+type RightTab = 'console' | 'problems';
 
 function TabButton({
   active,
@@ -38,9 +36,8 @@ function TabButton({
 
 export function AppShell() {
   const tokens = useThemeStore(resolveActiveTokens);
-  const { runId, harnessInput, run } = useRunner();
+  const { runId, code, run } = useRunner();
   const [rightTab, setRightTab] = useState<RightTab>('console');
-  const activePath = useFilesStore((state) => state.activePath);
   const problemsCount = useProblemsCount();
 
   return (
@@ -51,7 +48,6 @@ export function AppShell() {
           <div className={styles.logo}>
             coding<b>▪</b>playground
           </div>
-          <FileTabs />
           <div className={styles.spacer} />
           <CompilerOptionsPanel />
           <ThemeSwitcher />
@@ -72,9 +68,6 @@ export function AppShell() {
                 <TabButton active={rightTab === 'console'} onClick={() => setRightTab('console')}>
                   Console
                 </TabButton>
-                <TabButton active={rightTab === 'preview'} onClick={() => setRightTab('preview')}>
-                  Preview
-                </TabButton>
                 <TabButton active={rightTab === 'problems'} onClick={() => setRightTab('problems')}>
                   Problems{problemsCount > 0 ? ` (${problemsCount})` : ''}
                 </TabButton>
@@ -82,16 +75,6 @@ export function AppShell() {
               <div className={styles.rightBody}>
                 <div style={{ display: rightTab === 'console' ? 'block' : 'none', height: '100%' }}>
                   <ConsolePanel />
-                </div>
-                <div style={{ display: rightTab === 'preview' ? 'block' : 'none', height: '100%' }}>
-                  {harnessInput === null && (
-                    <div className={styles.previewEmpty}>Run your code to see a preview here.</div>
-                  )}
-                  <RuntimeFrame
-                    runId={runId}
-                    harnessInput={harnessInput}
-                    visible={rightTab === 'preview'}
-                  />
                 </div>
                 <div
                   style={{ display: rightTab === 'problems' ? 'block' : 'none', height: '100%' }}
@@ -102,8 +85,9 @@ export function AppShell() {
             </div>
           }
         />
+        <RuntimeFrame runId={runId} code={code} />
         <footer className={styles.footer}>
-          <span>{activePath.slice(1)}</span>
+          <span>index.ts</span>
           <span>{tokens.name}</span>
         </footer>
       </div>
