@@ -61,7 +61,7 @@ const cartographicBlueprint: ThemeTokens = {
   name: 'Cartographic Blueprint',
   colorBg: '#0B1E3D',
   colorSurface: '#0F274A',
-  colorSurface2: 'rgba(127,216,232,.05)',
+  colorSurface2: '#15325C',
   colorBorder: '#2A5C86',
   colorText: '#EAF4F8',
   colorTextDim: '#5D85A6',
