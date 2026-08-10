@@ -4,11 +4,16 @@
 
 A TypeScript-first, in-browser coding playground/studio: Monaco editor, client-side TS
 compilation, a sandboxed console, a curated package allowlist, and a thorough settings system.
-No backend in this phase — everything runs client-side. Single file only for now — multi-file
-editing and the DOM Preview tab were built in Phase 4 and then deliberately rolled back; see ADR
-0008 before reintroducing either. Full plan and phase breakdown: see the plan this repo was
-bootstrapped from (referenced in commit history of the initial scaffold commit) and
-`docs/decisions/` for the specific architectural calls.
+No backend — everything runs client-side (see ADR 0011 for why this stays true even once
+accounts/cloud-save/collaboration get scoped). Single file only for now — multi-file editing and
+the DOM Preview tab were built in Phase 4 and then deliberately rolled back; see ADR 0008 before
+reintroducing either.
+
+Read `docs/build-history.md` before picking up work here cold — it's the phase-by-phase account of
+what shipped when, including every real deviation from the original 10-phase plan. `docs/decisions/`
+has the why for individual architectural calls; `docs/verification-discipline.md` has the how for
+knowing something actually works, not just that it compiles — read that one before assuming a change
+is done because the checks passed.
 
 ## Conventions
 

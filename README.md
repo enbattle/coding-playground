@@ -1,12 +1,15 @@
 # coding-playground
 
 A TypeScript-first, in-browser coding playground/studio: a Monaco-powered editor, client-side
-TypeScript compilation, a sandboxed console, a curated package allowlist, and a thorough settings
-system — no backend, everything runs in your browser. Single file only for now (see
-`docs/decisions/0008-roll-back-multi-file-and-preview.md`).
+TypeScript compilation, a sandboxed console, a curated package allowlist, a thorough settings
+system, and no-backend persistence/sharing — no backend, everything runs in your browser. Single
+file only for now (see `docs/decisions/0008-roll-back-multi-file-and-preview.md`).
 
-Being built step by step; see `AGENTS.md` for conventions and `docs/decisions/` for the
-architectural calls made along the way.
+Built step by step across 10 phases (editor + execution, packages, settings/command palette,
+persistence/sharing, polish, CI) — see `docs/build-history.md` for the phase-by-phase account,
+`AGENTS.md` for conventions, `docs/decisions/` for the architectural calls made along the way, and
+`docs/verification-discipline.md` for how those calls got verified. Deploy is the one remaining
+open item.
 
 ## Getting started
 
@@ -26,4 +29,5 @@ npm run dev
 | `npm run format:check` | Check formatting without writing    |
 | `npm test`             | Run the test suite once (Vitest)    |
 | `npm run test:watch`   | Run the test suite in watch mode    |
+| `npm run test:e2e`     | Run the Playwright e2e suite        |
 | `npm run build`        | Type-check and build for production |
