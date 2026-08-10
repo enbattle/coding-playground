@@ -53,4 +53,5 @@ surface than a rewrite of this one.
 No migration cost paid now, no bundler-swap regression risk to the working Monaco/worker/sandbox
 pipeline. Revisit this ADR specifically (not from scratch) if a concrete requirement for
 server-rendered public pages materializes — that's the actual trigger condition, not "we're adding
-a backend."
+a backend." See `docs/future-implementations.md` for where accounts, cloud save, and collaboration
+currently stand.

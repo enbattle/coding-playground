@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { ConsoleLevel } from './runtimeMessage';
 
-export interface ConsoleEntry {
+interface ConsoleEntry {
   id: number;
   level: ConsoleLevel;
   text: string;

@@ -165,7 +165,8 @@ branch/PR), least-privilege `permissions: contents: read`, `timeout-minutes` on 
 e2e suite), and Playwright browser-binary caching. Deploy (picking and configuring a static host) is
 still open — deliberately deferred, not forgotten; the app's architecture (no backend, no
 client-side router, share links living entirely in the URL hash) means deploy is close to "point any
-static host at `dist/`" once a host is chosen.
+static host at `dist/`" once a host is chosen. See `docs/future-implementations.md` for the host
+options already discussed.
 
 ## Deviations from the original plan
 

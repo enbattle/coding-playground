@@ -75,7 +75,7 @@ export function ThemeSwitcher() {
             type="button"
             className={styles.option}
             disabled
-            title="Describe-your-own-theme — coming once there's a backend to generate it"
+            title="Describe your own theme — coming soon"
           >
             <span className={styles.swatchEmpty} />
             Custom…

@@ -8,8 +8,9 @@ file only for now (see `docs/decisions/0008-roll-back-multi-file-and-preview.md`
 Built step by step across 10 phases (editor + execution, packages, settings/command palette,
 persistence/sharing, polish, CI) — see `docs/build-history.md` for the phase-by-phase account,
 `AGENTS.md` for conventions, `docs/decisions/` for the architectural calls made along the way, and
-`docs/verification-discipline.md` for how those calls got verified. Deploy is the one remaining
-open item.
+`docs/verification-discipline.md` for how those calls got verified. Deploy, accounts/cloud save,
+multi-user collaboration, and AI-generated custom themes are deliberately not built yet — see
+`docs/future-implementations.md`.
 
 ## Getting started
 

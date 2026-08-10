@@ -13,7 +13,9 @@ Read `docs/build-history.md` before picking up work here cold — it's the phase
 what shipped when, including every real deviation from the original 10-phase plan. `docs/decisions/`
 has the why for individual architectural calls; `docs/verification-discipline.md` has the how for
 knowing something actually works, not just that it compiles — read that one before assuming a change
-is done because the checks passed.
+is done because the checks passed. `docs/future-implementations.md` tracks what's deliberately not
+built yet (accounts/cloud-save, collaboration, deploy, AI theme generation) and what to do first when
+picking one up — check it before scoping any of those from scratch.
 
 ## Conventions
 
@@ -31,9 +33,11 @@ is done because the checks passed.
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
   direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
-  `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`,
-  `src/theme/`, `src/sharing/` (share links, saved-playground snapshots, code export — Phase 8). No
-  `src/files/` right now — see ADR 0008.
+  `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`
+  (cross-cutting hooks with no single domain owner, e.g. `useFocusTrap`), `src/theme/`,
+  `src/sharing/` (share links, saved-playground snapshots, code export — Phase 8),
+  `src/commandPalette/` (Phase 7), `src/onboarding/` (example snippets — Phase 9). No `src/files/`
+  right now — see ADR 0008.
 - Adding a curated package (ADR 0003, ADR 0009): add one entry to `src/packages/registry.ts` —
   verify it resolves on esm.sh first (`curl -sI https://esm.sh/<name>@<version>`, check for a 200
   and an `x-typescript-types` header) before pinning the version. Execution and Monaco IntelliSense

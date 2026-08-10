@@ -55,4 +55,5 @@ concern that prompted this decision. The trade-off is a small amount of indirect
 themed value goes through a CSS custom property rather than a literal) for a system that scales to
 more curated themes, and eventually generated ones, for free. The AI-generated-theme feature
 remains genuinely unavailable until a backend endpoint exists — that's an explicit, accepted gap,
-not an oversight.
+not an oversight. See `docs/future-implementations.md` for the concrete next step when this gets
+picked up.

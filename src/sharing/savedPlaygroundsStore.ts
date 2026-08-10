@@ -5,7 +5,7 @@ import { DEFAULT_COMPILER_OPTIONS, type CompilerOptionValues } from '../settings
 import { getCompilerOptionValues, useCompilerOptionsStore } from '../settings/compilerOptionsStore';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
-export interface SavedPlayground {
+interface SavedPlayground {
   id: string;
   name: string;
   code: string;
