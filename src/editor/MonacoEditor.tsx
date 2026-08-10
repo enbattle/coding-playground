@@ -7,8 +7,13 @@ import { useEditorStore } from './store';
 import { syncMonacoTheme } from './monacoTheme';
 import { syncMonacoCompilerOptions } from './monacoCompilerOptions';
 import { syncMonacoPackageTypes } from './monacoPackageTypes';
+import { registerMonacoFormattingProvider } from './monacoFormattingProvider';
+import { useFormatCommandStore } from './formatCommand';
 import { useDiagnosticsStore, type DiagnosticEntry, type DiagnosticSeverity } from './diagnostics';
 import { useInsertRequestStore, IMPORT_SNIPPET_CURSOR_OFFSET } from '../packages/insertRequest';
+import { useRunnerStore } from '../execution/runnerStore';
+import { useEditorSettingsStore } from '../settings/editorSettingsStore';
+import type { EditorSettingValues } from '../settings/editorSettings';
 import styles from './MonacoEditor.module.css';
 
 const ENTRY_URI = 'file:///index.ts';
@@ -28,6 +33,18 @@ function severityFrom(severity: monaco.MarkerSeverity): DiagnosticSeverity {
   }
 }
 
+function toEditorOptions(
+  settings: EditorSettingValues,
+): monaco.editor.IStandaloneEditorConstructionOptions {
+  return {
+    fontSize: settings.fontSize,
+    tabSize: settings.tabSize,
+    wordWrap: settings.wordWrap ? 'on' : 'off',
+    minimap: { enabled: settings.minimap },
+    lineNumbers: settings.lineNumbers ? 'on' : 'off',
+  };
+}
+
 export function MonacoEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -37,6 +54,7 @@ export function MonacoEditor() {
       syncMonacoTheme();
       syncMonacoCompilerOptions();
       syncMonacoPackageTypes();
+      registerMonacoFormattingProvider();
       setupDone = true;
     }
   }, []);
@@ -56,16 +74,25 @@ export function MonacoEditor() {
       model,
       automaticLayout: true,
       fontFamily: 'var(--cp-font-mono)',
-      fontSize: 13.5,
-      minimap: { enabled: false },
       scrollBeyondLastLine: false,
       padding: { top: 16 },
+      ...toEditorOptions(useEditorSettingsStore.getState()),
     });
     editorRef.current = editor;
 
     // The theme's monospace font may still be downloading when Monaco first measures character
     // widths — re-measure once it's actually available to avoid misaligned columns/cursor.
     void document.fonts.ready.then(() => monaco.editor.remeasureFonts());
+
+    // Monaco captures and stops propagation of Enter keydowns while it has focus (it needs Enter
+    // for newlines/autocomplete acceptance), so a window-level ⌘Enter listener alone never fires
+    // while the user is actively typing — confirmed by instrumenting the window listener directly:
+    // the Enter keydown simply never arrives at `window` when focus is inside Monaco. Registering
+    // the binding on the editor itself covers that case; CommandPalette.tsx's window-level listener
+    // still covers ⌘Enter when focus is elsewhere (e.g. a popover button).
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      void useRunnerStore.getState().run();
+    });
 
     const subscription = editor.onDidChangeModelContent(() => {
       useEditorStore.getState().setContent(model.getValue());
@@ -76,6 +103,13 @@ export function MonacoEditor() {
       editor.dispose();
       model.dispose();
     };
+  }, []);
+
+  // Applies editor settings (Settings modal) live, without needing a remount.
+  useEffect(() => {
+    return useEditorSettingsStore.subscribe((settings) => {
+      editorRef.current?.updateOptions(toEditorOptions(settings));
+    });
   }, []);
 
   // Mirrors Monaco's own diagnostics (the same ones that power the red squiggles) into a plain
@@ -139,6 +173,20 @@ export function MonacoEditor() {
         editor.focus();
       }
       useInsertRequestStore.getState().clear();
+    });
+  }, []);
+
+  // "Format Document" from the command palette — runs Monaco's own native format action (the same
+  // one Shift+Alt+F triggers) rather than reimplementing edit application.
+  useEffect(() => {
+    return useFormatCommandStore.subscribe(() => {
+      // `editor.getAction(id)` relies on the editor-action contribution registry, which our
+      // minimal modular Monaco imports don't wire up (confirmed: getSupportedActions() returns
+      // an empty list on this editor instance, even though the same command works via its
+      // keybinding). `editor.trigger` invokes the command directly through Monaco's command
+      // service instead — the same path a keybinding resolves to — and works regardless, focus
+      // or no focus. See AGENTS.md's Monaco integration notes.
+      editorRef.current?.trigger('command-palette', 'editor.action.formatDocument', null);
     });
   }, []);
 

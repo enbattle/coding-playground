@@ -17,7 +17,10 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
 - Lint via `oxlint` (not ESLint) — this is the current Vite-scaffold default, faster, mostly
   rule-compatible. Don't add ESLint alongside it.
 - State: Zustand stores, one per concern (settings, editor, layout), each with a localStorage
-  persistence middleware where the plan calls for persistence.
+  persistence middleware where the plan calls for persistence. Prefer a store over component-local
+  state as soon as more than one UI entry point needs to trigger the same behavior — `useRunner`
+  started as a component-local hook in Phase 3 and became `src/execution/runnerStore.ts` in Phase 7
+  once the Run button, the command palette, and the global ⌘Enter shortcut all needed to call it.
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
 - New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
@@ -58,6 +61,22 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
   severity and message with no re-edit). It's easy to miss this reading only the per-model
   `onDidChangeContent` listener a few lines above it in the source and wrongly conclude you need to
   force revalidation yourself (e.g. a no-op edit) after a compiler-option change — you don't.
+- `editor.getAction(id)` / `editor.getSupportedActions()` return nothing on this editor instance —
+  confirmed by instrumenting it directly (`getSupportedActions()` is `[]`, total, not just for
+  format-related ids). Our minimal modular imports don't wire up the editor-action contribution
+  registry those two APIs read from, even though the _commands_ those actions would run (format,
+  etc.) work fine. To invoke a Monaco command programmatically, use
+  `editor.trigger(source, commandId, payload)` instead — the same path a keybinding resolves to,
+  and it works regardless of this gap. `src/editor/monacoFormattingProvider.ts` and the format
+  command handler in `MonacoEditor.tsx` are the reference example.
+- Monaco captures and stops propagation of the `Enter` keydown while it has focus (it needs Enter
+  for newlines/autocomplete acceptance) — confirmed by instrumenting a `window`-level keydown
+  listener directly: the Enter keydown for `⌘Enter` simply never arrives at `window` when focus is
+  inside the editor, silently breaking any global "run on ⌘Enter"-style shortcut for the single
+  most common case (the user actively typing). Any keyboard shortcut that must work while the
+  editor has focus needs `editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.<Key>, handler)`
+  registered on the editor itself, in addition to (not instead of) any `window`-level listener for
+  when focus is elsewhere — see the `editor.addCommand` call in `MonacoEditor.tsx`'s mount effect.
 
 ## Execution/sandbox notes
 

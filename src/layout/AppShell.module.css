@@ -58,12 +58,20 @@
 }
 
 .kbd {
+  appearance: none;
+  background: transparent;
   font-family: var(--cp-font-mono);
   font-size: 11px;
   color: var(--cp-color-text-dim);
   border: 1px solid var(--cp-color-border);
   border-radius: var(--cp-radius-sm);
-  padding: 2px 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.kbd:hover {
+  color: var(--cp-color-text-strong);
+  border-color: var(--cp-color-accent);
 }
 
 .run {

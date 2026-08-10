@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "monaco-editor": "^0.56.0",
+    "prettier": "^3.9.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
@@ -31,7 +32,6 @@
     "@vitejs/plugin-react": "^6.0.4",
     "jsdom": "^26.1.0",
     "oxlint": "^1.75.0",
-    "prettier": "^3.6.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
   },

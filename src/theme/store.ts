@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { applyThemeTokens, type ThemeTokens } from './tokens';
 import { DEFAULT_THEME_ID, THEME_PRESETS, type PresetThemeId } from './presets';
+import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
 interface ThemeState {
   /** A curated preset id, or `'custom'` for a generated theme held in `customTokens`. */
@@ -27,7 +28,13 @@ export const useThemeStore = create<ThemeState>()(
       setPreset: (id) => set({ activeId: id }),
       setCustomTheme: (tokens) => set({ activeId: 'custom', customTokens: tokens }),
     }),
-    { name: 'coding-playground:theme' },
+    {
+      name: 'coding-playground:theme',
+      version: SETTINGS_SCHEMA_VERSION,
+      // No prior versions exist yet — this is the seam for a future migration, not migrating
+      // anything today. See src/settings/schemaVersion.ts.
+      migrate: (persistedState) => persistedState as ThemeState,
+    },
   ),
 );
 

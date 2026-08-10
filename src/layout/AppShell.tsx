@@ -1,12 +1,15 @@
 import { useState, type ReactNode } from 'react';
+import { CommandPalette } from '../commandPalette/CommandPalette';
+import { useCommandPaletteStore } from '../commandPalette/store';
 import { MonacoEditor } from '../editor/MonacoEditor';
 import { ProblemsPanel } from '../editor/ProblemsPanel';
 import { useProblemsCount } from '../editor/diagnostics';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
-import { useRunner } from '../execution/useRunner';
+import { useRunnerStore } from '../execution/runnerStore';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
+import { SettingsModal } from '../settings/SettingsModal';
 import { ThemeMotif } from '../theme/motifs';
 import { useThemeStore, resolveActiveTokens } from '../theme/store';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
@@ -37,7 +40,10 @@ function TabButton({
 
 export function AppShell() {
   const tokens = useThemeStore(resolveActiveTokens);
-  const { runId, code, run } = useRunner();
+  const runId = useRunnerStore((state) => state.runId);
+  const code = useRunnerStore((state) => state.code);
+  const run = useRunnerStore((state) => state.run);
+  const openCommandPalette = useCommandPaletteStore((state) => state.setOpen);
   const [rightTab, setRightTab] = useState<RightTab>('console');
   const problemsCount = useProblemsCount();
 
@@ -54,7 +60,14 @@ export function AppShell() {
             <div className={styles.spacer} />
             <PackagesPanel />
             <CompilerOptionsPanel />
-            <div className={styles.kbd}>⌘K</div>
+            <button
+              type="button"
+              className={styles.kbd}
+              onClick={() => openCommandPalette(true)}
+              aria-label="Open command palette"
+            >
+              ⌘K
+            </button>
             <button type="button" className={styles.run} onClick={() => void run()}>
               ▸ Run
             </button>
@@ -103,6 +116,8 @@ export function AppShell() {
           </footer>
         </div>
       </div>
+      <CommandPalette />
+      <SettingsModal />
     </>
   );
 }
