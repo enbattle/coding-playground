@@ -49,6 +49,27 @@ test.describe('accessibility', () => {
     expect(results.violations).toEqual([]);
   });
 
+  // Packages, TS Config, and Share are lighter-weight popovers, not full modals (no backdrop, no
+  // focus trap — dismissible via outside click) but still use role="dialog" for their content, so
+  // still worth a scan. A page-load-time scan of the shell alone never opens these, so they'd
+  // otherwise have zero automated a11y coverage.
+  for (const { trigger, label } of [
+    { trigger: 'Packages', label: 'Available packages' },
+    { trigger: '⚙ TS Config', label: 'TypeScript compiler options' },
+    { trigger: '⇪ Share', label: 'Share and saved playgrounds' },
+  ]) {
+    test(`${trigger} popover has no automatically detectable a11y violations`, async ({ page }) => {
+      await page.goto('/');
+      await waitForMonaco(page);
+
+      await page.getByRole('button', { name: trigger, exact: false }).click();
+      await expect(page.getByRole('dialog', { name: label })).toBeVisible();
+
+      const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
+      expect(results.violations).toEqual([]);
+    });
+  }
+
   test('narrow viewports show a fallback instead of mounting the editor', async ({ page }) => {
     await page.setViewportSize({ width: 500, height: 800 });
     await page.goto('/');
