@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCommandPaletteStore } from './store';
 import { getCommands, filterCommands } from './commands';
 import { useRunnerStore } from '../execution/runnerStore';
+import { useFocusTrap } from '../state/useFocusTrap';
 import styles from './CommandPalette.module.css';
 
 /**
@@ -17,6 +18,7 @@ export function CommandPalette() {
   const toggle = useCommandPaletteStore((state) => state.toggle);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const commands = useMemo(() => filterCommands(getCommands(), query), [query]);
 
@@ -43,6 +45,8 @@ export function CommandPalette() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  useFocusTrap(open, panelRef);
+
   if (!open) return null;
 
   const runActive = () => {
@@ -54,7 +58,14 @@ export function CommandPalette() {
 
   return (
     <div className={styles.backdrop} onClick={() => setOpen(false)}>
-      <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
+      <div
+        ref={panelRef}
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+        onClick={(event) => event.stopPropagation()}
+      >
         <input
           ref={inputRef}
           className={styles.input}

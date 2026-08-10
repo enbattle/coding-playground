@@ -79,6 +79,13 @@ export function MonacoEditor() {
       ...toEditorOptions(useEditorSettingsStore.getState()),
     });
     editorRef.current = editor;
+    // Exposed only for e2e testability (see e2e/onboarding-examples.spec.ts's undo check) — this
+    // isn't a new attack surface, since the same monaco-editor module instance is already
+    // reachable and mutable by any script running on the page regardless. Reaching the model's
+    // canUndo() directly is what let us prove pushEditOperations (in the useEditorStore.subscribe
+    // effect below) preserves undo-ability, after Cmd+Z/Ctrl+Z delivered via CDP turned out to be
+    // unreliable under headless automation even though the underlying undo command always worked.
+    (window as unknown as { __cpEditor?: monaco.editor.IStandaloneCodeEditor }).__cpEditor = editor;
 
     // The theme's monospace font may still be downloading when Monaco first measures character
     // widths — re-measure once it's actually available to avoid misaligned columns/cursor.

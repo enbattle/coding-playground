@@ -42,6 +42,10 @@
 }
 
 .logo {
+  /* Semantically an <h1> (the page's one heading, for a11y) but must look identical to the plain
+     div it replaced — resets the UA stylesheet's default heading margin/weight. */
+  margin: 0;
+  font-weight: normal;
   font-family: var(--cp-font-display);
   letter-spacing: var(--cp-tracking-display);
   text-transform: var(--cp-transform-display);
@@ -93,6 +97,16 @@
   height: 100%;
 }
 
+.editorLoading {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cp-font-mono);
+  font-size: 12px;
+  color: var(--cp-color-text-dim);
+}
+
 .rightPane {
   height: 100%;
   display: flex;
@@ -129,6 +143,41 @@
 .rightBody {
   flex: 1;
   min-height: 0;
+}
+
+.narrowNotice {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px;
+  text-align: center;
+}
+
+.narrowNoticeLogo {
+  /* Semantically an <h1> for a11y — reset the UA heading margin/weight to match the original div. */
+  margin: 0;
+  font-weight: normal;
+  font-family: var(--cp-font-display);
+  letter-spacing: var(--cp-tracking-display);
+  text-transform: var(--cp-transform-display);
+  font-size: 15px;
+  color: var(--cp-color-text-strong);
+}
+
+.narrowNoticeLogo b {
+  color: var(--cp-color-accent);
+}
+
+.narrowNotice p {
+  max-width: 360px;
+  margin: 0;
+  font-family: var(--cp-font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cp-color-text-dim);
 }
 
 .footer {

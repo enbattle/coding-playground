@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useFocusTrap } from '../state/useFocusTrap';
 import { useSettingsModalStore } from './settingsModalStore';
 import { useEditorSettingsStore } from './editorSettingsStore';
 import { FONT_SIZE_OPTIONS, TAB_SIZE_OPTIONS } from './editorSettings';
@@ -22,6 +23,8 @@ export function SettingsModal() {
   const lineNumbers = useEditorSettingsStore((state) => state.lineNumbers);
   const setOption = useEditorSettingsStore((state) => state.setOption);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -32,14 +35,28 @@ export function SettingsModal() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, setOpen]);
 
+  useFocusTrap(open, panelRef);
+
+  useEffect(() => {
+    if (open) closeButtonRef.current?.focus();
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div className={styles.backdrop} onClick={() => setOpen(false)}>
-      <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
+      <div
+        ref={panelRef}
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className={styles.header}>
           <div className={styles.title}>Settings</div>
           <button
+            ref={closeButtonRef}
             type="button"
             className={styles.close}
             onClick={() => setOpen(false)}

@@ -34,6 +34,14 @@
   outline: none;
 }
 
+/* Overrides the global :focus-visible ring (an outline would get clipped by .panel's
+   overflow: hidden here) with an equally visible alternative scoped to this input. */
+.input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--cp-color-accent);
+  box-shadow: inset 0 -1px 0 var(--cp-color-accent);
+}
+
 .list {
   flex: 1;
   overflow-y: auto;

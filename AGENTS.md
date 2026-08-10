@@ -88,6 +88,18 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
   editor has focus needs `editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.<Key>, handler)`
   registered on the editor itself, in addition to (not instead of) any `window`-level listener for
   when focus is elsewhere — see the `editor.addCommand` call in `MonacoEditor.tsx`'s mount effect.
+- `MonacoEditor.tsx` exposes the live editor instance as `window.__cpEditor` — deliberate, not a
+  debug leftover. It exists because Cmd+Z/Ctrl+Z dispatched via CDP (`page.keyboard.press`) proved
+  unreliable in Playwright under headless automation even though the underlying undo command always
+  worked when triggered directly; e2e specs that need to assert on Monaco's actual state (e.g.
+  `canUndo()`) should read it from `window.__cpEditor` rather than fight keybinding delivery. See
+  `docs/testing-strategy.md`.
+- The store→editor sync effect (`useEditorStore.subscribe` in `MonacoEditor.tsx`) is what makes
+  external content changes (loading a saved playground, an example, a share link applied while
+  already mounted) actually show up — the model is otherwise only seeded once at mount. It applies
+  changes via `model.pushEditOperations`, not `model.setValue()`, specifically so the change stays
+  on the model's undo stack instead of resetting it — don't swap that for `setValue()` as a
+  "simplification," it would silently make every one of those actions un-undo-able.
 
 ## Execution/sandbox notes
 
@@ -115,7 +127,10 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
 - `npm run format` / `npm run format:check` — Prettier
 - `npm test` / `npm run test:watch` — Vitest (jsdom environment, Testing Library)
 - `npm run build` — typecheck + production build
-- Before every commit: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` must pass.
+- `npm run test:e2e` — Playwright, against a real `vite build` + `vite preview` (auto-started; see
+  `docs/testing-strategy.md`). Anything touching Monaco, workers, iframes, blob URLs, persistence,
+  or accessibility belongs here, not in a hand-run script — see that doc before adding a spec.
+- Before every commit: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` must pass. Run `npm run test:e2e` too for anything touching editor/execution/persistence/a11y — it's slower, so not part of the default chain, but CI runs it on every push.
 
 ## Architectural decisions
 

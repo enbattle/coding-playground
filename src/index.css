@@ -31,3 +31,12 @@ body {
 button {
   font: inherit;
 }
+
+/* Themed, consistent focus ring for keyboard navigation — :focus-visible so it stays out of the
+   way for mouse/touch users, unlike a plain :focus rule would. Component-scoped CSS can override
+   this for a specific element (see CommandPalette.module.css's .input), but should always replace
+   it with an equally visible alternative, never just remove it. */
+:is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--cp-color-accent);
+  outline-offset: 2px;
+}

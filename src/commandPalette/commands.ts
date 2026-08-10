@@ -1,6 +1,8 @@
+import { useEditorStore } from '../editor/store';
 import { useFormatCommandStore } from '../editor/formatCommand';
 import { useExecutionStore } from '../execution/store';
 import { useRunnerStore } from '../execution/runnerStore';
+import { CODE_EXAMPLES } from '../onboarding/examples';
 import { useEditorSettingsStore } from '../settings/editorSettingsStore';
 import { useSettingsModalStore } from '../settings/settingsModalStore';
 
@@ -11,6 +13,16 @@ export interface Command {
   keywords?: string[];
   run: () => void;
 }
+
+const EXAMPLE_COMMANDS: Command[] = CODE_EXAMPLES.map((example) => ({
+  id: `example:${example.id}`,
+  label: `Load Example: ${example.name}`,
+  keywords: ['example', 'sample', 'onboarding'],
+  // setContent alone is enough to update the visible editor too — MonacoEditor.tsx subscribes to
+  // this store and pushes external content changes into the live model (see AGENTS.md's Monaco
+  // notes), and routes them through pushEditOperations so this stays undo-able with ⌘Z.
+  run: () => useEditorStore.getState().setContent(example.code),
+}));
 
 function toggleEditorSetting(key: 'wordWrap' | 'minimap' | 'lineNumbers'): () => void {
   return () => {
@@ -59,6 +71,7 @@ export function getCommands(): Command[] {
       label: 'Toggle Line Numbers',
       run: toggleEditorSetting('lineNumbers'),
     },
+    ...EXAMPLE_COMMANDS,
   ];
 }
 
