@@ -1,8 +1,12 @@
 .stage {
   position: relative;
   max-width: 1400px;
-  margin: 28px auto;
-  padding: 0 20px;
+  /* A hard height (not min-height) so it's an actual constraint flexbox shrinks .shell to fit,
+     rather than a floor that .shell's content can grow past — that gap is exactly what let a few
+     stray pixels of flex/border rounding overflow the viewport and trigger a page scrollbar. */
+  height: 100vh;
+  margin: 0 auto;
+  padding: 28px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -18,7 +22,14 @@
   background: var(--cp-color-surface);
   display: flex;
   flex-direction: column;
-  min-height: min(720px, calc(100vh - 56px));
+  /* Fills whatever space is actually left after the pill + gap + this padding — no hardcoded
+     viewport-height arithmetic to keep in sync with the pill's real height (that's what caused the
+     page-scroll bug: min-height: min(720px, calc(100vh - 56px)) assumed a fixed 56px of chrome that
+     stopped being true once the floating pill added its own height above the shell). Capped at
+     720px on tall screens the same way as before, just via max-height instead of a min-height min(). */
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 720px;
 }
 
 .header {
