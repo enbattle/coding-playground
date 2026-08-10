@@ -5,6 +5,7 @@ import { useProblemsCount } from '../editor/diagnostics';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunner } from '../execution/useRunner';
+import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
 import { ThemeMotif } from '../theme/motifs';
 import { useThemeStore, resolveActiveTokens } from '../theme/store';
@@ -51,6 +52,7 @@ export function AppShell() {
               coding<b>▪</b>playground
             </div>
             <div className={styles.spacer} />
+            <PackagesPanel />
             <CompilerOptionsPanel />
             <div className={styles.kbd}>⌘K</div>
             <button type="button" className={styles.run} onClick={() => void run()}>

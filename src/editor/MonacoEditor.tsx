@@ -6,7 +6,9 @@ import { useEffect, useRef } from 'react';
 import { useEditorStore } from './store';
 import { syncMonacoTheme } from './monacoTheme';
 import { syncMonacoCompilerOptions } from './monacoCompilerOptions';
+import { syncMonacoPackageTypes } from './monacoPackageTypes';
 import { useDiagnosticsStore, type DiagnosticEntry, type DiagnosticSeverity } from './diagnostics';
+import { useInsertRequestStore, IMPORT_SNIPPET_CURSOR_OFFSET } from '../packages/insertRequest';
 import styles from './MonacoEditor.module.css';
 
 const ENTRY_URI = 'file:///index.ts';
@@ -34,6 +36,7 @@ export function MonacoEditor() {
     if (!setupDone) {
       syncMonacoTheme();
       syncMonacoCompilerOptions();
+      syncMonacoPackageTypes();
       setupDone = true;
     }
   }, []);
@@ -106,6 +109,36 @@ export function MonacoEditor() {
         editor.focus();
       }
       useDiagnosticsStore.getState().clearReveal();
+    });
+  }, []);
+
+  // "Insert import" from the Packages panel — inserts at the cursor and leaves it positioned
+  // between the snippet's braces, ready to type a named import.
+  useEffect(() => {
+    return useInsertRequestStore.subscribe((state) => {
+      const snippet = state.pendingSnippet;
+      if (!snippet) return;
+      const editor = editorRef.current;
+      if (editor) {
+        const position = editor.getPosition() ?? { lineNumber: 1, column: 1 };
+        editor.executeEdits('insert-import', [
+          {
+            range: new monaco.Range(
+              position.lineNumber,
+              position.column,
+              position.lineNumber,
+              position.column,
+            ),
+            text: snippet,
+          },
+        ]);
+        editor.setPosition({
+          lineNumber: position.lineNumber,
+          column: position.column + IMPORT_SNIPPET_CURSOR_OFFSET,
+        });
+        editor.focus();
+      }
+      useInsertRequestStore.getState().clear();
     });
   }, []);
 

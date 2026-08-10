@@ -23,8 +23,12 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
   direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
-  `src/editor/`, `src/execution/`, `src/settings/`, `src/packages-panel/`, `src/layout/`,
-  `src/state/`, `src/theme/`. No `src/files/` right now — see ADR 0008.
+  `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`,
+  `src/theme/`. No `src/files/` right now — see ADR 0008.
+- Adding a curated package (ADR 0003, ADR 0009): add one entry to `src/packages/registry.ts` —
+  verify it resolves on esm.sh first (`curl -sI https://esm.sh/<name>@<version>`, check for a 200
+  and an `x-typescript-types` header) before pinning the version. Execution and Monaco IntelliSense
+  both derive from that one entry automatically; no other file needs touching.
 - Theming: every themed value is a `--cp-*` CSS custom property (see `src/theme/tokens.ts`), never
   a literal color/font in component CSS — this is what lets themes multiply without components
   being rebuilt per theme. Exceptions are deliberate and narrow: fonts come only from the
