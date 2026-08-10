@@ -3,8 +3,6 @@ import { useExecutionStore } from '../execution/store';
 import { useRunnerStore } from '../execution/runnerStore';
 import { useEditorSettingsStore } from '../settings/editorSettingsStore';
 import { useSettingsModalStore } from '../settings/settingsModalStore';
-import { THEME_PRESETS, type PresetThemeId } from '../theme/presets';
-import { useThemeStore } from '../theme/store';
 
 export interface Command {
   id: string;
@@ -13,13 +11,6 @@ export interface Command {
   keywords?: string[];
   run: () => void;
 }
-
-const THEME_COMMANDS: Command[] = (Object.keys(THEME_PRESETS) as PresetThemeId[]).map((id) => ({
-  id: `theme:${id}`,
-  label: `Switch to ${THEME_PRESETS[id].name}`,
-  keywords: ['theme'],
-  run: () => useThemeStore.getState().setPreset(id),
-}));
 
 function toggleEditorSetting(key: 'wordWrap' | 'minimap' | 'lineNumbers'): () => void {
   return () => {
@@ -68,7 +59,6 @@ export function getCommands(): Command[] {
       label: 'Toggle Line Numbers',
       run: toggleEditorSetting('lineNumbers'),
     },
-    ...THEME_COMMANDS,
   ];
 }
 
