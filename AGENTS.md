@@ -27,7 +27,8 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
   direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
   `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`,
-  `src/theme/`. No `src/files/` right now — see ADR 0008.
+  `src/theme/`, `src/sharing/` (share links, saved-playground snapshots, code export — Phase 8). No
+  `src/files/` right now — see ADR 0008.
 - Adding a curated package (ADR 0003, ADR 0009): add one entry to `src/packages/registry.ts` —
   verify it resolves on esm.sh first (`curl -sI https://esm.sh/<name>@<version>`, check for a 200
   and an `x-typescript-types` header) before pinning the version. Execution and Monaco IntelliSense
@@ -69,6 +70,16 @@ bootstrapped from (referenced in commit history of the initial scaffold commit) 
   `editor.trigger(source, commandId, payload)` instead — the same path a keybinding resolves to,
   and it works regardless of this gap. `src/editor/monacoFormattingProvider.ts` and the format
   command handler in `MonacoEditor.tsx` are the reference example.
+- `MonacoEditor.tsx`'s model is seeded from `useEditorStore` once at mount and otherwise only
+  writes editor→store (via `onDidChangeModelContent`) — it does not automatically reflect store
+  changes made from outside the editor (e.g. `savedPlaygroundsStore.load()`, or a share link
+  applied while already mounted). Found this the hard way building the Phase 8 "Load saved
+  playground" action: the store updated correctly but the visible editor didn't change at all.
+  Fixed with a `useEditorStore.subscribe` effect that pushes the store's `content` into the model
+  via `pushEditOperations` whenever it no longer matches `model.getValue()` — that equality check
+  is what avoids double-applying the editor's own edits back onto itself. Any future code path that
+  calls `useEditorStore.getState().setContent(...)` from outside `MonacoEditor.tsx` relies on this
+  subscription to actually show up; don't remove it as "dead code" without checking for that.
 - Monaco captures and stops propagation of the `Enter` keydown while it has focus (it needs Enter
   for newlines/autocomplete acceptance) — confirmed by instrumenting a `window`-level keydown
   listener directly: the Enter keydown for `⌘Enter` simply never arrives at `window` when focus is

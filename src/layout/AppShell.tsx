@@ -10,6 +10,7 @@ import { useRunnerStore } from '../execution/runnerStore';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
 import { SettingsModal } from '../settings/SettingsModal';
+import { SharingPanel } from '../sharing/SharingPanel';
 import { ThemeMotif } from '../theme/motifs';
 import { useThemeStore, resolveActiveTokens } from '../theme/store';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
@@ -60,6 +61,7 @@ export function AppShell() {
             <div className={styles.spacer} />
             <PackagesPanel />
             <CompilerOptionsPanel />
+            <SharingPanel />
             <button
               type="button"
               className={styles.kbd}

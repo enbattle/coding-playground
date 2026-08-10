@@ -11,6 +11,8 @@ const PERSISTED_KEYS = [
   'coding-playground:theme',
   'coding-playground:compiler-options',
   'coding-playground:editor-settings',
+  'coding-playground:editor-content',
+  'coding-playground:saved-playgrounds',
 ];
 
 export function clearLocalData(): void {

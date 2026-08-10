@@ -112,6 +112,28 @@ export function MonacoEditor() {
     });
   }, []);
 
+  // Pushes external content changes (loading a saved playground, importing a share link while
+  // already mounted) into the live model. The equality check is what keeps this from looping back
+  // on the editor's *own* edits: onDidChangeModelContent above already wrote the new text into
+  // both the model and the store by the time this fires, so model.getValue() === state.content and
+  // this is a no-op for ordinary typing — it only does work when the store changed out from under
+  // the model some other way.
+  useEffect(() => {
+    return useEditorStore.subscribe((state) => {
+      const editor = editorRef.current;
+      const model = editor?.getModel();
+      if (!editor || !model) return;
+      if (model.getValue() === state.content) return;
+      const position = editor.getPosition();
+      model.pushEditOperations(
+        [],
+        [{ range: model.getFullModelRange(), text: state.content }],
+        () => null,
+      );
+      if (position) editor.setPosition(position);
+    });
+  }, []);
+
   // Mirrors Monaco's own diagnostics (the same ones that power the red squiggles) into a plain
   // store the Problems panel can read.
   useEffect(() => {
