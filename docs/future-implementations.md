@@ -109,3 +109,8 @@ only for discoverability, not duplicated:
   deliberate choice for a solo MVP with no cross-browser bug reports yet. See that file's comment
   for the stated trigger condition (a real bug report, a second contributor) before adding
   Firefox/WebKit projects.
+- **"Don't show again" for the welcome modal** — `src/onboarding/WelcomeModal.tsx` currently opens
+  on every load (`welcomeModalStore.ts`'s `open` starts `true`, no persistence). Next step: add a
+  `dismissed` flag to that store behind `persist` (same pattern as `editorSettingsStore.ts`), gate
+  the initial `open` value on it, and add its key to `src/settings/localData.ts`'s `PERSISTED_KEYS`
+  so "Clear local data" and settings export/import both cover it.

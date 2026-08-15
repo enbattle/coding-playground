@@ -10,6 +10,26 @@ test.describe('accessibility', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('Welcome modal shows on load, has no violations, and traps focus', async ({ page }) => {
+    await page.goto('/');
+    const dialog = page.getByRole('dialog', { name: 'Welcome' });
+    await expect(dialog).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
+    expect(results.violations).toEqual([]);
+
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press('Tab');
+    }
+    const focusInsideDialog = await dialog.evaluate((node) =>
+      node.contains(document.activeElement),
+    );
+    expect(focusInsideDialog).toBe(true);
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+  });
+
   test('Settings modal traps focus, has no violations, and returns focus on close', async ({
     page,
   }) => {

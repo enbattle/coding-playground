@@ -4,14 +4,8 @@ import { useSettingsModalStore } from './settingsModalStore';
 import { useEditorSettingsStore } from './editorSettingsStore';
 import { FONT_SIZE_OPTIONS, TAB_SIZE_OPTIONS } from './editorSettings';
 import { clearLocalData, exportSettings, importSettingsFromText } from './localData';
+import { SHORTCUTS } from './shortcuts';
 import styles from './SettingsModal.module.css';
-
-const SHORTCUTS: { key: string; label: string }[] = [
-  { key: '⌘K', label: 'Command Palette' },
-  { key: '⌘⏎', label: 'Run Code' },
-  { key: '⇧⌥F', label: 'Format Document' },
-  { key: 'Esc', label: 'Close dialogs' },
-];
 
 export function SettingsModal() {
   const open = useSettingsModalStore((state) => state.open);

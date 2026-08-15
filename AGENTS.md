@@ -36,8 +36,8 @@ picking one up — check it before scoping any of those from scratch.
   `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`
   (cross-cutting hooks with no single domain owner, e.g. `useFocusTrap`), `src/theme/`,
   `src/sharing/` (share links, saved-playground snapshots, code export — Phase 8),
-  `src/commandPalette/` (Phase 7), `src/onboarding/` (example snippets — Phase 9). No `src/files/`
-  right now — see ADR 0008.
+  `src/commandPalette/` (Phase 7), `src/onboarding/` (example snippets, Phase 9; the first-load
+  welcome modal). No `src/files/` right now — see ADR 0008.
 - Adding a curated package (ADR 0003, ADR 0009): add one entry to `src/packages/registry.ts` —
   verify it resolves on esm.sh first (`curl -sI https://esm.sh/<name>@<version>`, check for a 200
   and an `x-typescript-types` header) before pinning the version. Execution and Monaco IntelliSense

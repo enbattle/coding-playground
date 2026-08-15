@@ -1,0 +1,160 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--cp-color-surface-2);
+  border: 1px solid var(--cp-color-border);
+  border-radius: var(--cp-radius-md);
+  box-shadow: var(--cp-shadow);
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-family: var(--cp-font-display);
+  font-size: 17px;
+  color: var(--cp-color-text-strong);
+}
+
+.close {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--cp-color-border);
+  color: var(--cp-color-text-dim);
+  border-radius: var(--cp-radius-sm);
+  width: 26px;
+  height: 26px;
+  flex: none;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--cp-color-text-strong);
+}
+
+.intro {
+  font-family: var(--cp-font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cp-color-text);
+  margin: 0 0 20px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-family: var(--cp-font-body);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cp-color-text-dim);
+  margin-bottom: 8px;
+}
+
+.guideItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 7px 0;
+}
+
+.glyph {
+  flex: none;
+  width: 32px;
+  font-family: var(--cp-font-mono);
+  font-size: 12.5px;
+  color: var(--cp-color-accent);
+}
+
+.guideLabel {
+  font-family: var(--cp-font-body);
+  font-size: 12.5px;
+  color: var(--cp-color-text-strong);
+}
+
+.guideDescription {
+  font-family: var(--cp-font-body);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--cp-color-text-dim);
+  margin-top: 2px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-family: var(--cp-font-body);
+  font-size: 12.5px;
+  color: var(--cp-color-text);
+}
+
+.shortcutKey {
+  font-family: var(--cp-font-mono);
+  font-size: 11.5px;
+  color: var(--cp-color-text-dim);
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exampleButton {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--cp-color-border);
+  color: var(--cp-color-text);
+  font-family: var(--cp-font-body);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: var(--cp-radius-sm);
+  cursor: pointer;
+}
+
+.exampleButton:hover {
+  border-color: var(--cp-color-accent);
+  color: var(--cp-color-text-strong);
+}
+
+.done {
+  appearance: none;
+  width: 100%;
+  background: var(--cp-color-accent);
+  border: none;
+  color: var(--cp-color-bg);
+  font-family: var(--cp-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: var(--cp-radius-sm);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.done:hover {
+  opacity: 0.9;
+}

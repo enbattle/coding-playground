@@ -168,6 +168,20 @@ client-side router, share links living entirely in the URL hash) means deploy is
 static host at `dist/`" once a host is chosen. See `docs/future-implementations.md` for the host
 options already discussed.
 
+## Phase 10.5 — First-load welcome modal _(scope addition — not strictly in the original plan)_
+
+A `WelcomeModal` (`src/onboarding/`) mounted unconditionally alongside `SettingsModal`/
+`CommandPalette`, following their exact pattern — own Zustand store, Escape-to-close, focus trap,
+backdrop-click-to-close. Content covers what a first-time visitor needs: what the app is (no
+backend, single file), how to run code, pointers to the command palette/packages/compiler
+options/sharing/settings, the same keyboard-shortcuts list Settings shows (hoisted to a shared
+export so the two don't drift), and buttons to load one of the three onboarding examples directly.
+`welcomeModalStore.ts`'s `open` starts `true` with no persistence — it shows on every load for now;
+see `docs/future-implementations.md` for the "don't show again" follow-up. Because every e2e spec
+calls `page.goto('/')` then `waitForMonaco(page)` before its first real interaction, the modal's
+backdrop would otherwise block every one of those specs — closing it became part of
+`waitForMonaco()` itself (`e2e/helpers.ts`) rather than a line repeated in six spec files.
+
 ## Deviations from the original plan
 
 Three real forks in the road happened that weren't anticipated in the original phase breakdown.

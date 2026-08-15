@@ -6,6 +6,7 @@ import { useProblemsCount } from '../editor/diagnostics';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunnerStore } from '../execution/runnerStore';
+import { WelcomeModal } from '../onboarding/WelcomeModal';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
 import { SettingsModal } from '../settings/SettingsModal';
@@ -164,6 +165,7 @@ export function AppShell() {
       </div>
       <CommandPalette />
       <SettingsModal />
+      <WelcomeModal />
     </>
   );
 }

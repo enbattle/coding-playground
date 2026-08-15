@@ -16,8 +16,15 @@ export async function runCommand(page: Page, filter: string): Promise<void> {
   await page.keyboard.press('Enter');
 }
 
+/**
+ * Also dismisses the first-load welcome modal. Every spec calls this immediately after
+ * `page.goto('/')` and before its first real interaction, so closing it here — rather than in each
+ * spec individually — is what keeps its backdrop from blocking the header buttons/editor that
+ * everything else in the suite clicks next.
+ */
 export async function waitForMonaco(page: Page): Promise<void> {
   await page.waitForSelector('.monaco-editor', { timeout: 15_000 });
+  await page.getByRole('button', { name: 'Close welcome' }).click();
 }
 
 /** Monaco renders some whitespace in its DOM as U+00A0 (non-breaking space) rather than a regular
