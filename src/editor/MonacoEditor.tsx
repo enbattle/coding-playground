@@ -2,6 +2,12 @@ import './monacoEnvironment';
 import * as monaco from 'monaco-editor/editor/editor.api';
 // Registers the 'typescript' language id + Monarch tokenizer with Monaco's basic language registry.
 import 'monaco-editor/languages/definitions/typescript/register';
+// Registers Monaco's built-in hover contribution (MarkerHoverParticipant) — without this, hovering
+// over a squiggly-underlined diagnostic shows nothing, since `editor/editor.api`'s minimal modular
+// build doesn't pull in editor contributions the way the old full `editor.main.js` bundle used to
+// (same "minimal modular imports" gap AGENTS.md documents for the action-contribution registry).
+// Side-effect only, must run before `monaco.editor.create()`, same as the TS registration above.
+import 'monaco-editor/editor/contrib/hover/browser/hoverContribution';
 import { useEffect, useRef } from 'react';
 import { useEditorStore } from './store';
 import { syncMonacoTheme } from './monacoTheme';
@@ -76,6 +82,14 @@ export function MonacoEditor() {
       fontFamily: 'var(--cp-font-mono)',
       scrollBeyondLastLine: false,
       padding: { top: 16 },
+      // Overflow widgets (hover, parameter hints, suggest) default to `position: absolute` inside
+      // the editor's own overflow-guard node, which the shell's layout clips at the editor pane's
+      // edge — a hover near the split divider gets visibly cut off instead of overlapping the
+      // console/problems pane. `fixedOverflowWidgets` switches them to `position: fixed`, anchored
+      // to the viewport instead of any ancestor, so they render above the whole shell regardless of
+      // `.pane`'s `overflow: auto` or `.shell`'s `overflow: hidden` (SplitPane.module.css,
+      // AppShell.module.css).
+      fixedOverflowWidgets: true,
       ...toEditorOptions(useEditorSettingsStore.getState()),
     });
     editorRef.current = editor;
