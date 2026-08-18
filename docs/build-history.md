@@ -182,9 +182,40 @@ calls `page.goto('/')` then `waitForMonaco(page)` before its first real interact
 backdrop would otherwise block every one of those specs — closing it became part of
 `waitForMonaco()` itself (`e2e/helpers.ts`) rather than a line repeated in six spec files.
 
+## Phase 10.6 — Editor IntelliSense completeness (hover, autocomplete) _(scope addition)_
+
+Three real bugs found and fixed in the diagnostics/editor surface, plus committed e2e coverage
+for two features that had none:
+
+- **Problems panel truncation**: long diagnostic messages were cut off with an ellipsis and no way
+  to see the rest — `.message` now wraps (`white-space: pre-wrap`) instead of clipping.
+- **Hover showed nothing**: Monaco's minimal modular build doesn't auto-register editor
+  contributions the way the old full `editor.main.js` bundle used to (same class of gap
+  `AGENTS.md` already documented for the action-contribution registry) — hovering a
+  squiggly-underlined diagnostic did nothing until
+  `monaco-editor/editor/contrib/hover/browser/hoverContribution` was explicitly imported. Also
+  fixed in the same pass: hover (and suggest, and parameter hints) getting visibly clipped near the
+  split-pane divider, via `fixedOverflowWidgets: true`.
+- **Autocomplete never worked in `npm run dev`**: the same missing-contribution gap as hover, for
+  `monaco-editor/editor/contrib/suggest/browser/suggestController` — but harder to catch, because
+  it silently appeared to work in a production build. `vite.config.ts`'s `manualChunks` rule (added
+  in Phase 9) forces all of `node_modules/monaco-editor` into one chunk, which happened to sweep in
+  Suggest's registration even though nothing explicitly imported it; `npm run dev` serves
+  unbundled ESM following only the app's real import graph, so the gap was only visible there. This
+  is the mirror image of the Phase 9 regression (`docs/verification-discipline.md`) — that one
+  broke in `build` and worked in `dev`, this one broke in `dev` and worked in `build` — and was
+  found the same way: by testing the identical low-level trigger against both environments and
+  comparing, not by trusting one environment's result to generalize.
+- New `e2e/editor-intellisense.spec.ts` covers both — hover's tooltip content and clipping fix, and
+  autocomplete surfacing a user-defined symbol and a bare TypeScript keyword. Confirms the codebase's
+  own testing-strategy guidance the hard way: bulk-inserted text (`setEditorContent`, used by every
+  other spec) doesn't reliably exercise Monaco's auto-trigger-while-typing behavior the way real
+  keystrokes do — an early version of this suite's autocomplete check using bulk insertion gave a
+  false positive that would have hidden the `npm run dev` regression above.
+
 ## Deviations from the original plan
 
-Three real forks in the road happened that weren't anticipated in the original phase breakdown.
+Four real forks in the road happened that weren't anticipated in the original phase breakdown.
 
 ### Multi-file rollback (between Phase 4 and Phase 5)
 
@@ -215,3 +246,17 @@ frontend-framework concerns, Next.js buys zero benefit for an app that's 100% cl
 construction, and there's a concrete migration cost (three places already depend on Vite-specific
 worker-import syntax with no Next equivalent). The actual trigger condition for revisiting this is
 recorded in the ADR — it's a narrower bar than "we added a backend."
+
+### Automatic "pretty" diagnostic explanations, explored and declined (after Phase 10.6)
+
+A full implementation — quoted-substring extraction and classification, Prettier-reformatted type
+fragments, a shared "dig deeper" detail modal reachable from both the Problems panel and a custom
+additive Monaco hover action — was built and verified genuinely working end-to-end, inspired by the
+[pretty-ts-errors](https://github.com/yoavbls/pretty-ts-errors) VSCode extension. Reverted anyway:
+testing it against real, deeply nested chains (not hand-picked examples) showed that faithfully
+reformatting every level of a chain made messages _longer_ than raw, not shorter, and even a
+prototype that collapsed the chain into a short breadcrumb was still just retypesetting TypeScript's
+own sentences, never the genuine plain-language explanation the reference extension's own demo
+shows. Full reasoning, what was built and verified along the way (including real, reusable Monaco
+hover-participant internals no public docs cover), and what a future attempt should do differently:
+`docs/decisions/0012-diagnostics-stay-raw-no-automatic-explanation.md`.

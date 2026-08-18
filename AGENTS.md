@@ -79,6 +79,40 @@ picking one up — check it before scoping any of those from scratch.
   `editor.trigger(source, commandId, payload)` instead — the same path a keybinding resolves to,
   and it works regardless of this gap. `src/editor/monacoFormattingProvider.ts` and the format
   command handler in `MonacoEditor.tsx` are the reference example.
+- General pattern behind the two bullets below, worth checking before wiring up any _other_ Monaco
+  feature that isn't working: this app's minimal modular imports (`editor/editor.api` +
+  per-feature registration modules) don't auto-register editor _contributions_ the way the old full
+  `editor.main.js` bundle used to — each one needs its own side-effect import
+  (`monaco-editor/editor/contrib/<feature>/browser/<feature>Contribution`-shaped path), found by
+  grepping that contribution's source for `registerEditorContribution`. Silent failure, not an
+  error: the feature just never activates.
+  - **Hover**: without `monaco-editor/editor/contrib/hover/browser/hoverContribution`, hovering a
+    squiggly-underlined diagnostic shows nothing at all.
+  - **Suggest** (autocomplete/IntelliSense — member access, local symbols, keywords, `new X(...)`):
+    without `monaco-editor/editor/contrib/suggest/browser/suggestController`, the dropdown never
+    appears while typing, and `editor.action.triggerSuggest` (what Ctrl+Space/Cmd+Space resolves
+    to) silently no-ops. This one is easy to miss because it can appear to work anyway: production
+    builds "worked" here purely by accident before this import was added, because
+    `vite.config.ts`'s `manualChunks` rule forces all of `node_modules/monaco-editor` into one
+    chunk, which happened to sweep this registration in even though nothing explicitly imported
+    it. `npm run dev` serves native, unbundled ESM that follows only the app's real import graph,
+    so the gap was only visible there — confirmed by testing the identical low-level trigger
+    (`editor.trigger('x', 'editor.action.triggerSuggest', {})`) against both `npm run dev` and a
+    real `vite preview` build and comparing results directly, not by assuming build behavior
+    generalizes to dev. If a future Monaco feature "works in preview but not in dev" (the reverse
+    of the Phase 9 regression `docs/verification-discipline.md` describes), check for exactly this
+    class of gap before looking anywhere else — and verify any new contribution against `npm run
+dev` specifically, not just a production build, since that's the environment `manualChunks`
+    can't accidentally paper over.
+- `monaco.editor.create()` is called with `fixedOverflowWidgets: true` — without it, overflow
+  widgets (hover, suggest, parameter hints) render `position: absolute` inside the editor's own
+  overflow-guard node, which `.pane`'s `overflow: auto` (`SplitPane.module.css`) and `.shell`'s
+  `overflow: hidden` (`AppShell.module.css`) then clip at the editor pane's edge — a hover or
+  suggestion dropdown near the split divider gets visibly cut off instead of overlapping the
+  console/problems pane. This option switches them to `position: fixed`, anchored to the viewport
+  instead of any ancestor, confirmed by checking the rendered widget's computed `position` directly
+  rather than assuming the option name matches its effect. Don't remove this as unnecessary — the
+  clipping it fixes only shows up near the pane's right edge, easy to miss testing near the left.
 - `MonacoEditor.tsx`'s model is seeded from `useEditorStore` once at mount and otherwise only
   writes editor→store (via `onDidChangeModelContent`) — it does not automatically reflect store
   changes made from outside the editor (e.g. `savedPlaygroundsStore.load()`, or a share link

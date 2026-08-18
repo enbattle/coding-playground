@@ -1,13 +1,25 @@
 import './monacoEnvironment';
 import * as monaco from 'monaco-editor/editor/editor.api';
+
 // Registers the 'typescript' language id + Monarch tokenizer with Monaco's basic language registry.
 import 'monaco-editor/languages/definitions/typescript/register';
+
 // Registers Monaco's built-in hover contribution (MarkerHoverParticipant) — without this, hovering
 // over a squiggly-underlined diagnostic shows nothing, since `editor/editor.api`'s minimal modular
 // build doesn't pull in editor contributions the way the old full `editor.main.js` bundle used to
 // (same "minimal modular imports" gap AGENTS.md documents for the action-contribution registry).
 // Side-effect only, must run before `monaco.editor.create()`, same as the TS registration above.
 import 'monaco-editor/editor/contrib/hover/browser/hoverContribution';
+
+// Registers Monaco's built-in Suggest contribution (auto-trigger-while-typing, the
+// editor.action.triggerSuggest command, every accept/navigate keybinding) — the same "minimal
+// modular build doesn't auto-register contributions" gap as hover above, just easier to miss:
+// production builds "worked" only by accident, because vite.config.ts's manualChunks rule forces
+// all of node_modules/monaco-editor into one chunk, which happened to sweep this registration in
+// even though nothing explicitly imported it. Confirmed the hard way — `npm run dev` serves native,
+// unbundled ESM that follows only the app's real import graph, so without this exact import,
+// Suggest silently never loads there at all (no error, the widget just never appears).
+import 'monaco-editor/editor/contrib/suggest/browser/suggestController';
 import { useEffect, useRef } from 'react';
 import { useEditorStore } from './store';
 import { syncMonacoTheme } from './monacoTheme';

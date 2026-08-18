@@ -1,12 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { runCommand, waitForMonaco } from './helpers';
 
-declare global {
-  interface Window {
-    __cpEditor?: { getModel(): { canUndo(): boolean; getValue(): string } | null };
-  }
-}
-
 test.describe('onboarding examples', () => {
   test('loading the zod example populates the editor and runs successfully', async ({ page }) => {
     await page.goto('/');

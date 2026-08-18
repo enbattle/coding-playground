@@ -1,5 +1,15 @@
 import type { Page } from '@playwright/test';
 
+// MonacoEditor.tsx exposes the live editor instance as window.__cpEditor deliberately, not a debug
+// leftover — see AGENTS.md's Monaco notes. One shared declaration here, not one per spec file:
+// multiple `declare global` augmentations of the same property must have identical shapes, so a
+// second, differently-typed local declaration in another spec file fails to compile.
+declare global {
+  interface Window {
+    __cpEditor?: { getModel(): { canUndo(): boolean; getValue(): string } | null };
+  }
+}
+
 /** Selects all and replaces the single-file editor's content. Uses insertText rather than
  * type() — AGENTS.md notes type() can trip Monaco's auto-closing-bracket "type over" detection. */
 export async function setEditorContent(page: Page, code: string): Promise<void> {
