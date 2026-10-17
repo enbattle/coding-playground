@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { persistStorage } from '../settings/safeStorage';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
 export const SAMPLE_SOURCE = `function greet(name: string): string {
@@ -24,6 +25,7 @@ export const useEditorStore = create<EditorState>()(
     {
       name: 'coding-playground:editor-content',
       version: SETTINGS_SCHEMA_VERSION,
+      storage: persistStorage,
       migrate: (persistedState) => persistedState as EditorState,
     },
   ),

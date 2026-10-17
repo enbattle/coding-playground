@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_COMPILER_OPTIONS, type CompilerOptionValues } from './compilerOptions';
+import { persistStorage } from './safeStorage';
 import { SETTINGS_SCHEMA_VERSION } from './schemaVersion';
 
 interface CompilerOptionsState extends CompilerOptionValues {
@@ -16,6 +17,7 @@ export const useCompilerOptionsStore = create<CompilerOptionsState>()(
     {
       name: 'coding-playground:compiler-options',
       version: SETTINGS_SCHEMA_VERSION,
+      storage: persistStorage,
       migrate: (persistedState) => persistedState as CompilerOptionsState,
     },
   ),

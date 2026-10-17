@@ -67,6 +67,33 @@ test.describe('persistence and sharing', () => {
     await receiver.close();
   });
 
+  test('full browser storage shows a warning instead of silently not saving', async ({ page }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+
+    // Fill the origin's localStorage quota: big chunks first, then ever-smaller ones, each size
+    // repeated until refused, so not even a small write fits afterwards.
+    await page.evaluate(() => {
+      let key = 0;
+      for (let size = 256 * 1024; size >= 1; size = Math.floor(size / 2)) {
+        for (;;) {
+          try {
+            localStorage.setItem(`e2e-filler-${key++}`, 'x'.repeat(size));
+          } catch {
+            break;
+          }
+        }
+      }
+    });
+
+    // Bigger than what's already stored: overwriting a key with a smaller value needs no new space.
+    await setEditorContent(page, `const unsaved = "${'storage-full '.repeat(200)}";\n`);
+    // Filtered: Monaco has its own (empty) role="alert" live regions.
+    await expect(
+      page.getByRole('alert').filter({ hasText: "Changes aren't being saved" }),
+    ).toBeVisible();
+  });
+
   test('saved playgrounds: save, persist, load, and delete', async ({ page }) => {
     await page.goto('/');
     await waitForMonaco(page);

@@ -10,6 +10,7 @@ import { useExecutionStore } from '../execution/store';
 import { WelcomeModal } from '../onboarding/WelcomeModal';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
+import { useStorageHealthStore } from '../settings/safeStorage';
 import { SettingsModal } from '../settings/SettingsModal';
 import { useSettingsModalStore } from '../settings/settingsModalStore';
 import { ShareLinkPrompt } from '../sharing/ShareLinkPrompt';
@@ -77,6 +78,7 @@ export function AppShell() {
   const [rightTab, setRightTab] = useState<RightTab>('console');
   const problemsCount = useProblemsCount();
   const narrow = useIsNarrowViewport();
+  const storageFull = useStorageHealthStore((state) => state.writeFailed);
 
   if (narrow) {
     return (
@@ -168,6 +170,12 @@ export function AppShell() {
           <RuntimeFrame runId={runId} code={code} />
           <footer className={styles.footer}>
             <span>index.ts</span>
+            {storageFull && (
+              <span role="alert" className={styles.storageWarning}>
+                ⚠ Changes aren't being saved: browser storage is full. Delete saved playgrounds
+                (under Share) to free space.
+              </span>
+            )}
             <span>{tokens.name}</span>
           </footer>
         </main>

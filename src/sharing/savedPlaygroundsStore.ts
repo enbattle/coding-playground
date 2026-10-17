@@ -7,6 +7,7 @@ import {
   type CompilerOptionValues,
 } from '../settings/compilerOptions';
 import { getCompilerOptionValues, useCompilerOptionsStore } from '../settings/compilerOptionsStore';
+import { persistStorage } from '../settings/safeStorage';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
 interface SavedPlayground {
@@ -54,6 +55,7 @@ export const useSavedPlaygroundsStore = create<SavedPlaygroundsState>()(
     {
       name: 'coding-playground:saved-playgrounds',
       version: SETTINGS_SCHEMA_VERSION,
+      storage: persistStorage,
       migrate: (persistedState) => persistedState as SavedPlaygroundsState,
     },
   ),
