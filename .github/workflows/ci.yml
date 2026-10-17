@@ -11,8 +11,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Least-privilege default: neither job pushes, comments, or writes anything — read-only access to
-# repo contents is all `actions/checkout` needs. Override per-job if a future step needs more.
+# Least-privilege default: verify and e2e push, comment, and write nothing — read-only access to
+# repo contents is all `actions/checkout` needs. Only `deploy` overrides this, for Pages alone.
 permissions:
   contents: read
 
@@ -68,3 +68,32 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Every merge to main deploys to GitHub Pages, but only once both test jobs pass, so a red build
+  # never ships. Pull requests run the tests and stop there. Needs the repo's Pages source set to
+  # "GitHub Actions"; `base` in vite.config.ts must match the /coding-playground/ project path.
+  deploy:
+    needs: [verify, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/
+      - id: deployment
+        uses: actions/deploy-pages@v5

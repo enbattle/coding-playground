@@ -18,9 +18,7 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "e2e:serve": "vite build && vite preview --port 4173 --strictPort",
-    "test:e2e": "playwright test",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --dotfiles"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "lz-string": "^1.5.0",
@@ -41,7 +39,6 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
-    "gh-pages": "^6.3.0",
     "jsdom": "^26.1.0",
     "oxlint": "^1.75.0",
     "vite": "^8.2.0",

@@ -166,11 +166,16 @@ e2e suite), and Playwright browser-binary caching. Deploy was deferred at first 
 
 It was set up later, after Phase 10.6 (`da2b1bb`), on **GitHub Pages**: no new account, since the
 repo is already on GitHub. `vite.config.ts` sets `base: '/coding-playground/'` for the project-page
-path, `public/.nojekyll` stops Jekyll from processing the built assets, and `npm run deploy`
-(the `gh-pages` package) publishes `dist/` to the `gh-pages` branch. It's manual and not gated on
-CI; automating it is tracked in `docs/future-implementations.md`. No rewrite rules were needed,
-since the app has no client-side router and share links live in the URL hash, which never reaches
-the server.
+path. No rewrite rules were needed, since the app has no client-side router and share links live
+in the URL hash, which never reaches the server. At first deploys were manual (`npm run deploy`
+via the `gh-pages` package, pushing `dist/` to a `gh-pages` branch), not gated on CI.
+
+After Phase 10.7 that was replaced with **automatic deploys**: a `deploy` job in
+`.github/workflows/ci.yml` runs on every push to `main`, after `verify` and `e2e` pass, and
+publishes with GitHub's own Pages actions. Only that job gets `pages: write` and `id-token: write`.
+The `gh-pages` package, the deploy scripts, the `gh-pages` branch, and `public/.nojekyll` (the
+Pages actions don't run Jekyll) were removed, so there's no manual path to ship untested code.
+Merging to `main` is shipping.
 
 ## Phase 10.5 — First-load welcome modal _(scope addition — not strictly in the original plan)_
 
