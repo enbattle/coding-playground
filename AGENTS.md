@@ -13,10 +13,11 @@ Read `docs/build-history.md` before picking up work here cold — it's the phase
 what shipped when, including every real deviation from the original 10-phase plan. `docs/decisions/`
 has the why for individual architectural calls; `docs/verification-discipline.md` has the how for
 knowing something actually works, not just that it compiles — read that one before assuming a change
-is done because the checks passed. `docs/engineering-principles.md` is the design-principles reference (YAGNI, KISS, DRY, SoC, SOLID,
-TDD — what each means here and when it doesn't apply). `docs/future-implementations.md` tracks what's deliberately not
-built yet (accounts/cloud-save, collaboration, deploy, AI theme generation) and what to do first when
-picking one up — check it before scoping any of those from scratch.
+is done because the checks passed. `docs/engineering-principles.md` is the design-principles
+reference (YAGNI, KISS, DRY, SoC, SOLID, TDD — what each means here and when it doesn't apply).
+`docs/future-implementations.md` tracks what's deliberately not built yet (accounts/cloud-save,
+collaboration, AI theme generation, CI-gated deploy) and what to do first when picking one up —
+check it before scoping any of those from scratch.
 
 ## Conventions
 
@@ -29,6 +30,10 @@ picking one up — check it before scoping any of those from scratch.
   state as soon as more than one UI entry point needs to trigger the same behavior — `useRunner`
   started as a component-local hook in Phase 3 and became `src/execution/runnerStore.ts` in Phase 7
   once the Run button, the command palette, and the global ⌘Enter shortcut all needed to call it.
+- A new persisted store passes `storage: persistStorage` (`src/settings/safeStorage.ts`) to
+  `persist`, like the existing five. Zustand's default storage swallows quota errors, so without it
+  a full `localStorage` stops saving silently instead of showing the footer warning. Also add its
+  key to `PERSISTED_KEYS` in `src/settings/localData.ts` so "Clear local data" covers it.
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
 - New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
@@ -173,9 +178,10 @@ dev` specifically, not just a production build, since that's the environment `ma
 
 - The runtime iframe (`sandbox="allow-scripts"`, no `allow-same-origin`) has an opaque origin and
   cannot load blob URLs created outside itself — including ones the parent page creates. All blob
-  URLs for a run are created _inside_ the iframe by its own bootstrap script, from source text
-  embedded in the harness (see `src/execution/sandboxHarness.ts`, ADR 0006). Don't go back to
-  creating blob URLs on the main thread and passing the URLs in.
+  URLs for a run are created _inside_ the sandbox from source text embedded in the harness: the
+  iframe's bootstrap creates the worker's, and the worker creates the user module's (see
+  `src/execution/sandboxHarness.ts`, ADR 0006). Don't go back to creating blob URLs on the main
+  thread and passing the URLs in.
 - User code runs in a **classic Web Worker started inside that iframe**, not on the iframe's own
   thread (ADR 0013). A sandboxed `srcdoc` iframe shares the app's main thread, so code running
   there directly could freeze the whole page (Stop button included) with a single
@@ -193,6 +199,10 @@ dev` specifically, not just a production build, since that's the environment `ma
   timeout/interval is pending (tracked by wrapping the timer functions in the harness). That's
   what decides when Stop is shown. There's deliberately no execution timeout (see ADR 0013 for
   why).
+- User `console.*` output goes only to the app's console panel, not to DevTools. Don't add
+  mirroring back: measured, it alone made a 200,000-line flood freeze the tab for 8–15 s. The
+  worker's send quota and the per-frame flush in `RuntimeFrame.tsx` are both load-bearing too
+  (Phase 10.7 in `docs/build-history.md`).
 - When testing Monaco input via Playwright, prefer `page.keyboard.insertText(...)` over
   `page.keyboard.type(...)` — `type()` sends real keydown events and can trip Monaco's
   auto-closing-bracket "type over" detection, duplicating closing braces in ways a real human
@@ -210,7 +220,11 @@ dev` specifically, not just a production build, since that's the environment `ma
 - `npm run test:e2e` — Playwright, against a real `vite build` + `vite preview` (auto-started; see
   `docs/testing-strategy.md`). Anything touching Monaco, workers, iframes, blob URLs, persistence,
   or accessibility belongs here, not in a hand-run script — see that doc before adding a spec.
-- Before every commit: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` must pass. Run `npm run test:e2e` too for anything touching editor/execution/persistence/a11y — it's slower, so not part of the default chain, but CI runs it on every push.
+- Before every commit: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` must pass. Run `npm run test:e2e` too for anything touching editor/execution/persistence/a11y — it's slower, so not part of the default chain, but CI runs it on every push and pull request.
+- `npm run deploy` — builds and publishes `dist/` to the `gh-pages` branch, which GitHub Pages
+  serves at https://enbattle.github.io/coding-playground/ (`base` in `vite.config.ts` must match
+  that path). It's manual and not gated on CI, so run it only when asked, from an up-to-date
+  `main` with CI green.
 
 ## Architectural decisions
 

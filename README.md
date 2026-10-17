@@ -6,10 +6,13 @@ system, a first-load welcome guide, and no-backend persistence/sharing — no ba
 runs in your browser. Single file only for now (see
 `docs/decisions/0008-roll-back-multi-file-and-preview.md`).
 
+Live at https://enbattle.github.io/coding-playground/.
+
 Built step by step across 10 phases (editor + execution, packages, settings/command palette,
-persistence/sharing, polish, CI) — see `docs/build-history.md` for the phase-by-phase account,
-`AGENTS.md` for conventions, `docs/decisions/` for the architectural calls made along the way, and
-`docs/verification-discipline.md` for how those calls got verified. Deploy, accounts/cloud save,
+persistence/sharing, polish, CI and deploy) — see `docs/build-history.md` for the phase-by-phase
+account, `AGENTS.md` for conventions, `docs/engineering-principles.md` for the design principles
+new code follows, `docs/decisions/` for the architectural calls made along the way, and
+`docs/verification-discipline.md` for how those calls got verified. Accounts/cloud save,
 multi-user collaboration, and AI-generated custom themes are deliberately not built yet — see
 `docs/future-implementations.md`.
 
@@ -33,3 +36,4 @@ npm run dev
 | `npm run test:watch`   | Run the test suite in watch mode    |
 | `npm run test:e2e`     | Run the Playwright e2e suite        |
 | `npm run build`        | Type-check and build for production |
+| `npm run deploy`       | Build and publish to GitHub Pages   |

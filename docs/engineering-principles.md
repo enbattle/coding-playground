@@ -78,7 +78,7 @@ edit. Two blocks that look alike but encode different rules aren't duplication, 
 couples things that should change independently.
 
 - **Not duplication:** the two `TARGET_MAP`s (`src/editor/monacoCompilerOptions.ts`,
-  `src/execution/transpile.worker.ts`). Same keys, but each maps to a different library's enum, and
+  `src/execution/transpile.ts`). Same keys, but each maps to a different library's enum, and
   ADR 0007 deliberately has each consumer map independently.
 - **Already DRY, the right way:** `src/packages/registry.ts` (one entry drives execution,
   IntelliSense, and the panel), `SETTINGS_SCHEMA_VERSION`, the keyboard-shortcuts list shared by
@@ -100,8 +100,10 @@ add another parameter.
 ## SoC — separation of concerns
 
 Already the backbone of the layout: one directory per domain, one Zustand store per concern, three
-independent TypeScript engines (Monaco's worker for diagnostics, the transpile worker for execution,
-the iframe for running — ADR 0002).
+independent execution stages (Monaco's worker for diagnostics, the transpile worker for compiling,
+a worker inside the sandboxed iframe for running — ADRs 0002 and 0013). `src/execution/transpile.ts`
+is the same split at file level: the compile logic is a pure, unit-tested function, and
+`transpile.worker.ts` is only message plumbing around it.
 
 The practical test at the function level: **can this logic be unit-tested without mocking a store,
 `window`, `history`, or Monaco?** If not, the logic and its side effects are in one function. Split

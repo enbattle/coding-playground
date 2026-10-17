@@ -7,8 +7,8 @@ _how correctness gets verified_): this doc records _what shipped when, and in wh
 future session — on this project or a different one — can understand the arc without reconstructing
 it from `git log`.
 
-Like `docs/testing-strategy.md`, this is a living document for the phases still ahead (right now,
-just deploy) — append to it rather than treating it as closed once Phase 10 finishes.
+Like `docs/testing-strategy.md`, this is a living document — append to it as work lands rather than
+treating it as closed now that the original 10 phases are done.
 
 ## Phase 1 — Scaffold
 
@@ -162,11 +162,15 @@ The biggest single phase for real bugs found via verification, not just features
 CI hardening done: concurrency cancellation (a new push cancels an in-flight run for the same
 branch/PR), least-privilege `permissions: contents: read`, `timeout-minutes` on both jobs (a hung
 `webServer` startup is a real failure mode — it happened locally, more than once, while building the
-e2e suite), and Playwright browser-binary caching. Deploy (picking and configuring a static host) is
-still open — deliberately deferred, not forgotten; the app's architecture (no backend, no
-client-side router, share links living entirely in the URL hash) means deploy is close to "point any
-static host at `dist/`" once a host is chosen. See `docs/future-implementations.md` for the host
-options already discussed.
+e2e suite), and Playwright browser-binary caching. Deploy was deferred at first to decide on a host.
+
+It was set up later, after Phase 10.6 (`da2b1bb`), on **GitHub Pages**: no new account, since the
+repo is already on GitHub. `vite.config.ts` sets `base: '/coding-playground/'` for the project-page
+path, `public/.nojekyll` stops Jekyll from processing the built assets, and `npm run deploy`
+(the `gh-pages` package) publishes `dist/` to the `gh-pages` branch. It's manual and not gated on
+CI; automating it is tracked in `docs/future-implementations.md`. No rewrite rules were needed,
+since the app has no client-side router and share links live in the URL hash, which never reaches
+the server.
 
 ## Phase 10.5 — First-load welcome modal _(scope addition — not strictly in the original plan)_
 

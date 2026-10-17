@@ -29,8 +29,9 @@ So testing here is deliberately split by what's actually being verified:
 Phase 9 formalized what had been ad hoc, throwaway browser checks (Playwright driven by hand from
 the session scratchpad, one script per phase, discarded after use — Phases 3 through 8 were all
 verified this way) into a real committed suite. One spec file per concern, mirroring the app's own
-`src/` layout: `editor-and-run`, `settings-and-compiler-options`, `sharing-and-persistence`,
-`packages-and-theme`, `onboarding-examples`, `accessibility`.
+`src/` layout: `editor-and-run`, `editor-intellisense`, `settings-and-compiler-options`,
+`sharing-and-persistence`, `packages-and-theme`, `package-types`, `onboarding-examples`,
+`accessibility`.
 
 **Runs against a real production build, not `vite dev`.** `playwright.config.ts`'s `webServer`
 calls `npm run e2e:serve` (`vite build && vite preview`), deliberately — Vite's dev server bypasses
