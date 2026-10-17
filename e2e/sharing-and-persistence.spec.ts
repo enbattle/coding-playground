@@ -35,6 +35,38 @@ test.describe('persistence and sharing', () => {
     await freshPage.close();
   });
 
+  test('opening a share link over existing work asks first and saves that work', async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/');
+    await waitForMonaco(page);
+    await setEditorContent(page, 'const SHARED = "incoming-marker";\n');
+    await page.getByRole('button', { name: '⇪ Share' }).click();
+    await page.getByRole('button', { name: 'Copy link', exact: true }).click();
+    const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
+
+    // Same browser profile (shared localStorage) now holds different, unsaved-to-a-snapshot work.
+    await page.keyboard.press('Escape');
+    await setEditorContent(page, 'const MINE = "precious-work";\n');
+    await page.waitForTimeout(300);
+
+    const receiver = await context.newPage();
+    await receiver.goto(shareUrl);
+    const prompt = receiver.getByRole('dialog', { name: 'Open shared code?' });
+    await expect(prompt).toBeVisible();
+    await expect(receiver.locator('.monaco-editor .view-lines')).toContainText('precious-work');
+
+    await prompt.getByRole('button', { name: 'Open shared code' }).click();
+    await expect(receiver.locator('.monaco-editor .view-lines')).toContainText('incoming-marker');
+
+    await receiver.getByRole('button', { name: '⇪ Share' }).click();
+    await receiver.getByRole('button', { name: 'Load', exact: true }).first().click();
+    await expect(receiver.locator('.monaco-editor .view-lines')).toContainText('precious-work');
+    await receiver.close();
+  });
+
   test('saved playgrounds: save, persist, load, and delete', async ({ page }) => {
     await page.goto('/');
     await waitForMonaco(page);

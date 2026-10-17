@@ -105,9 +105,11 @@ the iframe for running — ADR 0002).
 The practical test at the function level: **can this logic be unit-tested without mocking a store,
 `window`, `history`, or Monaco?** If not, the logic and its side effects are in one function. Split
 it into a pure core (parse, validate, compute — takes values, returns values) and a thin shell
-(reads stores, writes stores, touches the DOM). `applyShareLinkFromHash()` is the current example:
-decoding, validation, `history.replaceState`, and store writes all in one function, which is why it
-has no unit test.
+(reads stores, writes stores, touches the DOM). `src/sharing/shareLink.ts` is a worked example. It
+started as one `applyShareLinkFromHash()` doing decoding, validation, `history.replaceState`, and
+store writes, with no unit test. Adding the "ask before replacing your work" prompt split it into
+pure `parseSharePayload()` and `needsConfirmation()` (unit-tested) and a thin
+`openShareLinkFromHash()` shell. The split happened when a change needed it, not before.
 
 `MonacoEditor.tsx` is deliberately the integration hub between the stores and Monaco — that's its
 one concern, and it's fine for it to have many small subscription effects. Keep _logic_ out of it:

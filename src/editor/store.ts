@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
-const SAMPLE_SOURCE = `function greet(name: string): string {
+export const SAMPLE_SOURCE = `function greet(name: string): string {
   return \`Hello, ${'${name}'}!\`
 }
 

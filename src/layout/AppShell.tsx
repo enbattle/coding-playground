@@ -12,6 +12,7 @@ import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
 import { SettingsModal } from '../settings/SettingsModal';
 import { useSettingsModalStore } from '../settings/settingsModalStore';
+import { ShareLinkPrompt } from '../sharing/ShareLinkPrompt';
 import { SharingPanel } from '../sharing/SharingPanel';
 import { ThemeMotif } from '../theme/motifs';
 import { useThemeStore, resolveActiveTokens } from '../theme/store';
@@ -174,6 +175,7 @@ export function AppShell() {
       <CommandPalette />
       <SettingsModal />
       <WelcomeModal />
+      <ShareLinkPrompt />
     </>
   );
 }
