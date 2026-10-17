@@ -19,20 +19,19 @@
  * URLs at compile time instead (src/execution/transpile.ts).
  */
 
+import { formatConsoleArgs } from './consoleFormat';
 import { MAX_CONSOLE_ENTRIES } from './store';
 
-// Runs inside the worker. Plain JS in a string: it's shipped as source text, never bundled.
+// Runs inside the worker. Plain JS in a string: it's shipped as source text, never bundled — except
+// formatConsoleArgs, embedded from its own (unit-tested, self-contained) source.
 const WORKER_RUNTIME = `
 const post = (message) => postMessage(Object.assign({ source: 'coding-playground-runtime' }, message));
 const nativeSetTimeout = self.setTimeout.bind(self);
 const nativeClearTimeout = self.clearTimeout.bind(self);
 const nativeSetInterval = self.setInterval.bind(self);
 const nativeClearInterval = self.clearInterval.bind(self);
-const serialize = (value) => {
-  if (typeof value === 'string') return value;
-  if (value instanceof Error) return value.stack || value.message;
-  try { return JSON.stringify(value, null, 2); } catch { return String(value); }
-};
+const formatConsoleArgs = ${formatConsoleArgs.toString()};
+const serialize = (value) => formatConsoleArgs([value]);
 
 // Console lines are sent immediately up to a quota per 50 ms window; past that (a flood), they're
 // batched — one message per window, trimmed to the latest MAX_LINES with the rest counted.
@@ -84,7 +83,7 @@ const emit = (level, text) => {
 // in under half a second. The app's console panel is where this output belongs.
 for (const level of ['log', 'warn', 'error', 'info', 'debug']) {
   console[level] = function (...args) {
-    emit(level, args.map(serialize).join(' '));
+    emit(level, formatConsoleArgs(args));
   };
 }
 self.addEventListener('error', (event) => {

@@ -113,6 +113,20 @@ test.describe('editor and execution', () => {
     await expect(consoleOutput(page).getByText('Execution stopped.')).toBeVisible();
   });
 
+  // Runs against the production build on purpose: the formatter's source is embedded into the
+  // sandbox via Function.prototype.toString, after minification.
+  test('console output shows values JSON would mangle', async ({ page }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+
+    await setEditorContent(page, 'console.log(new Map([["k", 1]]), undefined, 10n);\n');
+    await page.getByRole('button', { name: '▸ Run' }).click();
+
+    await expect(consoleOutput(page)).toContainText('Map(1) {');
+    await expect(consoleOutput(page)).toContainText('"k" => 1');
+    await expect(consoleOutput(page)).toContainText('} undefined 10n');
+  });
+
   test('a runtime error surfaces in the console', async ({ page }) => {
     await page.goto('/');
     await waitForMonaco(page);
