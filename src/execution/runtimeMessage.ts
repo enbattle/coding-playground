@@ -4,10 +4,11 @@ interface RuntimeMessageBase {
   source: 'coding-playground-runtime';
 }
 
+/** A batch of console lines; `dropped` counts earlier lines the sandbox trimmed from this batch. */
 export interface RuntimeConsoleMessage extends RuntimeMessageBase {
   type: 'console';
-  level: ConsoleLevel;
-  text: string;
+  entries: { level: ConsoleLevel; text: string }[];
+  dropped: number;
 }
 
 /** Sent by the sandbox on each idle↔running transition — see sandboxHarness.ts. */

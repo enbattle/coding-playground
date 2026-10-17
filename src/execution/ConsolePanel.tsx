@@ -1,4 +1,4 @@
-import { useExecutionStore } from './store';
+import { MAX_CONSOLE_ENTRIES, useExecutionStore } from './store';
 import styles from './ConsolePanel.module.css';
 
 const LEVEL_MARKER: Record<string, string> = {
@@ -12,6 +12,7 @@ const LEVEL_MARKER: Record<string, string> = {
 export function ConsolePanel() {
   const entries = useExecutionStore((state) => state.entries);
   const status = useExecutionStore((state) => state.status);
+  const hiddenCount = useExecutionStore((state) => state.hiddenCount);
 
   return (
     <div className={styles.pane}>
@@ -19,7 +20,13 @@ export function ConsolePanel() {
         <span className={status === 'running' ? `${styles.dot} ${styles.running}` : styles.dot} />
         {status === 'running' ? 'Running' : 'Ready'}
       </div>
-      <div className={styles.body}>
+      <div className={styles.body} role="log" aria-label="Console output">
+        {hiddenCount > 0 && (
+          <div className={styles.hidden}>
+            … {hiddenCount.toLocaleString()} earlier lines not shown (the console keeps the latest{' '}
+            {MAX_CONSOLE_ENTRIES.toLocaleString()})
+          </div>
+        )}
         {entries.length === 0 && (
           <div className={styles.empty}>Run your code to see output here.</div>
         )}

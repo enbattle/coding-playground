@@ -19,31 +19,85 @@
  * URLs at compile time instead (src/execution/transpile.ts).
  */
 
+import { MAX_CONSOLE_ENTRIES } from './store';
+
 // Runs inside the worker. Plain JS in a string: it's shipped as source text, never bundled.
 const WORKER_RUNTIME = `
 const post = (message) => postMessage(Object.assign({ source: 'coding-playground-runtime' }, message));
+const nativeSetTimeout = self.setTimeout.bind(self);
+const nativeClearTimeout = self.clearTimeout.bind(self);
+const nativeSetInterval = self.setInterval.bind(self);
+const nativeClearInterval = self.clearInterval.bind(self);
 const serialize = (value) => {
   if (typeof value === 'string') return value;
   if (value instanceof Error) return value.stack || value.message;
   try { return JSON.stringify(value, null, 2); } catch { return String(value); }
 };
+
+// Console lines are sent immediately up to a quota per 50 ms window; past that (a flood), they're
+// batched — one message per window, trimmed to the latest MAX_LINES with the rest counted.
+// Sending one message per call made a tight logging loop bury the page in messages. Batching
+// only past the quota matters: a line buffered for a later flush would be stranded by a following
+// loop that never yields (console.log('start'); while (true) {}), so ordinary output never waits.
+// The window check runs inline on every call, so a flood keeps flowing even without yielding.
+const MAX_LINES = ${MAX_CONSOLE_ENTRIES};
+const WINDOW_MS = 50;
+const IMMEDIATE_PER_WINDOW = 100;
+let batch = [];
+let dropped = 0;
+let windowStart = 0;
+let sentInWindow = 0;
+let flushScheduled = false;
+const flush = () => {
+  flushScheduled = false;
+  if (batch.length > MAX_LINES) {
+    dropped += batch.length - MAX_LINES;
+    batch = batch.slice(-MAX_LINES);
+  }
+  if (batch.length === 0 && dropped === 0) return;
+  post({ type: 'console', entries: batch, dropped: dropped });
+  batch = [];
+  dropped = 0;
+};
+const emit = (level, text) => {
+  const now = Date.now();
+  if (now - windowStart >= WINDOW_MS) {
+    windowStart = now;
+    sentInWindow = 0;
+    flush();
+  }
+  if (batch.length === 0 && sentInWindow < IMMEDIATE_PER_WINDOW) {
+    sentInWindow++;
+    post({ type: 'console', entries: [{ level: level, text: text }], dropped: 0 });
+    return;
+  }
+  batch.push({ level: level, text: text });
+  // Trim in chunks rather than shifting on every line, so a flood stays O(1) per call.
+  if (batch.length >= 2 * MAX_LINES) {
+    dropped += batch.length - MAX_LINES;
+    batch = batch.slice(-MAX_LINES);
+  }
+  if (!flushScheduled) { flushScheduled = true; nativeSetTimeout(flush, WINDOW_MS); }
+};
+// Deliberately not also forwarded to the browser's own console: measured during a 200k-line flood,
+// that mirroring alone kept the page unresponsive for 8-15 s; without it, the same flood finishes
+// in under half a second. The app's console panel is where this output belongs.
 for (const level of ['log', 'warn', 'error', 'info', 'debug']) {
-  const original = console[level];
   console[level] = function (...args) {
-    post({ type: 'console', level: level, text: args.map(serialize).join(' ') });
-    original.apply(console, args);
+    emit(level, args.map(serialize).join(' '));
   };
 }
 self.addEventListener('error', (event) => {
   event.preventDefault();
-  post({ type: 'console', level: 'error', text: event.error ? serialize(event.error) : event.message });
+  emit('error', event.error ? serialize(event.error) : event.message);
 });
 self.addEventListener('unhandledrejection', (event) => {
-  post({ type: 'console', level: 'error', text: 'Uncaught (in promise) ' + serialize(event.reason) });
+  emit('error', 'Uncaught (in promise) ' + serialize(event.reason));
 });
 
 // "Still running" means the module's top level hasn't settled or a timer/interval is pending —
-// the parent keeps Stop available exactly that long. Only transitions are reported.
+// the parent keeps Stop available exactly that long. Only transitions are reported, and pending
+// console lines are flushed first so they never arrive after the status that follows them.
 let topLevelDone = false;
 let idle = false;
 const timers = new Set();
@@ -51,12 +105,9 @@ const updateStatus = () => {
   const nowIdle = topLevelDone && timers.size === 0;
   if (nowIdle === idle) return;
   idle = nowIdle;
+  flush();
   post({ type: 'status', status: idle ? 'idle' : 'running' });
 };
-const nativeSetTimeout = self.setTimeout.bind(self);
-const nativeClearTimeout = self.clearTimeout.bind(self);
-const nativeSetInterval = self.setInterval.bind(self);
-const nativeClearInterval = self.clearInterval.bind(self);
 self.setTimeout = (handler, delay, ...args) => {
   if (typeof handler !== 'function') return nativeSetTimeout(handler, delay, ...args);
   const id = nativeSetTimeout(() => {
@@ -80,14 +131,14 @@ self.clearInterval = (id) => { nativeClearInterval(id); timers.delete(id); updat
 const runUserCode = (code) => {
   const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
   import(url)
-    .catch((error) => post({ type: 'console', level: 'error', text: serialize(error) }))
+    .catch((error) => emit('error', serialize(error)))
     .finally(() => { topLevelDone = true; updateStatus(); });
 };
 `;
 
 /**
- * JSON-encodes a value for embedding in an inline <script>. Escaping every `<` (as the
- * still-valid JS escape `<`) rules out `</script` closing the element early and `<!--` +
+ * JSON-encodes a value for embedding in an inline <script>. Escaping every `<` (as its JS unicode
+ * escape, still valid inside a string literal) rules out `</script` closing the element early and `<!--` +
  * `<script` switching the HTML parser into its double-escaped state, where the real closing tag
  * stops working — both silently broke the whole harness before.
  */

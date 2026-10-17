@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { getEditorText, runCommand, setEditorContent, waitForMonaco } from './helpers';
+import {
+  consoleOutput,
+  getEditorText,
+  runCommand,
+  setEditorContent,
+  waitForMonaco,
+} from './helpers';
 
 test.describe('editor and execution', () => {
   test('typing code and running it shows console output', async ({ page }) => {
@@ -9,7 +15,7 @@ test.describe('editor and execution', () => {
     await setEditorContent(page, 'console.log("hello from e2e")\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
 
-    await expect(page.getByText('hello from e2e')).toBeVisible();
+    await expect(consoleOutput(page).getByText('hello from e2e')).toBeVisible();
   });
 
   test('Format Document reformats via Prettier', async ({ page }) => {
@@ -31,10 +37,10 @@ test.describe('editor and execution', () => {
 
     await setEditorContent(page, 'console.log("will be cleared")\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
-    await expect(page.getByText('will be cleared')).toBeVisible();
+    await expect(consoleOutput(page).getByText('will be cleared')).toBeVisible();
 
     await runCommand(page, 'clear');
-    await expect(page.getByText('Run your code to see output here.')).toBeVisible();
+    await expect(consoleOutput(page).getByText('Run your code to see output here.')).toBeVisible();
   });
 
   test('an infinite loop can be stopped without freezing the page', async ({ page }) => {
@@ -43,16 +49,18 @@ test.describe('editor and execution', () => {
 
     await setEditorContent(page, 'console.log("loop started");\nwhile (true) {}\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
-    await expect(page.getByText('loop started')).toBeVisible();
+    // Only reachable if the page is still processing messages after the loop began — on the old
+    // same-thread harness this line is where the test fails.
+    await expect(consoleOutput(page).getByText('loop started')).toBeVisible();
+    await page.waitForTimeout(1_000);
 
-    // The click itself is the responsiveness check: on a frozen main thread it times out.
     await page.getByRole('button', { name: '■ Stop' }).click({ timeout: 5_000 });
-    await expect(page.getByText('Execution stopped.')).toBeVisible();
+    await expect(consoleOutput(page).getByText('Execution stopped.')).toBeVisible();
     await expect(page.getByRole('button', { name: '■ Stop' })).toBeHidden();
 
     await setEditorContent(page, 'console.log("runs again")\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
-    await expect(page.getByText('runs again')).toBeVisible();
+    await expect(consoleOutput(page).getByText('runs again')).toBeVisible();
   });
 
   test('Stop halts a running interval, and Stop shows only while work is pending', async ({
@@ -63,17 +71,46 @@ test.describe('editor and execution', () => {
 
     await setEditorContent(page, 'setInterval(() => console.log("tick"), 100);\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
-    await expect(page.getByText('tick').first()).toBeVisible();
+    const ticks = consoleOutput(page).getByText('tick', { exact: true });
+    await expect(ticks.nth(2)).toBeVisible();
 
     await page.getByRole('button', { name: '■ Stop' }).click();
-    const ticksAtStop = await page.getByText('tick', { exact: true }).count();
+    const ticksAtStop = await ticks.count();
     await page.waitForTimeout(500);
-    expect(await page.getByText('tick', { exact: true }).count()).toBe(ticksAtStop);
+    expect(await ticks.count()).toBe(ticksAtStop);
 
     await setEditorContent(page, 'console.log("quick")\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
-    await expect(page.getByText('quick')).toBeVisible();
+    await expect(consoleOutput(page).getByText('quick')).toBeVisible();
     await expect(page.getByRole('button', { name: '■ Stop' })).toBeHidden();
+  });
+
+  test('a flood of console output stays responsive and shows the latest lines', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+
+    await setEditorContent(page, 'for (let i = 0; i < 200000; i++) console.log("n=" + i);\n');
+    await page.getByRole('button', { name: '▸ Run' }).click();
+
+    await expect(consoleOutput(page).getByText('n=199999', { exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(consoleOutput(page).getByText(/earlier lines not shown/)).toBeVisible();
+  });
+
+  test('an endless logging loop can still be stopped', async ({ page }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+
+    await setEditorContent(page, 'while (true) console.log("spam");\n');
+    await page.getByRole('button', { name: '▸ Run' }).click();
+    await expect(consoleOutput(page).getByText('spam').first()).toBeVisible();
+    await page.waitForTimeout(1_000);
+
+    await page.getByRole('button', { name: '■ Stop' }).click({ timeout: 5_000 });
+    await expect(consoleOutput(page).getByText('Execution stopped.')).toBeVisible();
   });
 
   test('a runtime error surfaces in the console', async ({ page }) => {
@@ -83,6 +120,6 @@ test.describe('editor and execution', () => {
     await setEditorContent(page, 'throw new Error("boom from e2e")\n');
     await page.getByRole('button', { name: '▸ Run' }).click();
 
-    await expect(page.getByText('boom from e2e', { exact: false })).toBeVisible();
+    await expect(consoleOutput(page).getByText('boom from e2e', { exact: false })).toBeVisible();
   });
 });
