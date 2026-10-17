@@ -1,6 +1,10 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { useEditorStore } from '../editor/store';
-import { DEFAULT_COMPILER_OPTIONS, type CompilerOptionValues } from '../settings/compilerOptions';
+import {
+  DEFAULT_COMPILER_OPTIONS,
+  pickCompilerOptions,
+  type CompilerOptionValues,
+} from '../settings/compilerOptions';
 import { getCompilerOptionValues, useCompilerOptionsStore } from '../settings/compilerOptionsStore';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
@@ -52,10 +56,11 @@ export function applyShareLinkFromHash(): void {
     useEditorStore.getState().setContent(payload.code);
   }
   if (typeof payload.compilerOptions === 'object' && payload.compilerOptions !== null) {
-    for (const key of Object.keys(DEFAULT_COMPILER_OPTIONS) as (keyof CompilerOptionValues)[]) {
-      if (key in payload.compilerOptions) {
-        useCompilerOptionsStore.getState().setOption(key, payload.compilerOptions[key] as never);
-      }
-    }
+    // Defaults first, so the link reproduces the sender's options rather than mixing them with
+    // whatever the receiver had set for any option the payload doesn't carry.
+    useCompilerOptionsStore.setState({
+      ...DEFAULT_COMPILER_OPTIONS,
+      ...pickCompilerOptions(payload.compilerOptions),
+    });
   }
 }

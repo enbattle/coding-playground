@@ -2,7 +2,7 @@ import { useThemeStore } from '../theme/store';
 import { THEME_PRESETS } from '../theme/presets';
 import { useCompilerOptionsStore, getCompilerOptionValues } from './compilerOptionsStore';
 import { useEditorSettingsStore } from './editorSettingsStore';
-import { DEFAULT_COMPILER_OPTIONS } from './compilerOptions';
+import { pickCompilerOptions } from './compilerOptions';
 import { DEFAULT_EDITOR_SETTINGS } from './editorSettings';
 import { SETTINGS_SCHEMA_VERSION } from './schemaVersion';
 
@@ -62,20 +62,12 @@ export function importSettingsFromText(text: string): void {
   if (
     data.theme &&
     typeof data.theme.activeId === 'string' &&
-    data.theme.activeId in THEME_PRESETS
+    Object.hasOwn(THEME_PRESETS, data.theme.activeId)
   ) {
     useThemeStore.getState().setPreset(data.theme.activeId as never);
   }
 
-  if (data.compilerOptions && typeof data.compilerOptions === 'object') {
-    for (const key of Object.keys(
-      DEFAULT_COMPILER_OPTIONS,
-    ) as (keyof typeof DEFAULT_COMPILER_OPTIONS)[]) {
-      if (key in data.compilerOptions) {
-        useCompilerOptionsStore.getState().setOption(key, data.compilerOptions[key] as never);
-      }
-    }
-  }
+  useCompilerOptionsStore.setState(pickCompilerOptions(data.compilerOptions));
 
   if (data.editorSettings && typeof data.editorSettings === 'object') {
     for (const key of Object.keys(

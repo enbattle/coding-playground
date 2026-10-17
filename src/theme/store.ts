@@ -17,7 +17,11 @@ export function resolveActiveTokens(
   state: Pick<ThemeState, 'activeId' | 'customTokens'>,
 ): ThemeTokens {
   if (state.activeId === 'custom' && state.customTokens) return state.customTokens;
-  return THEME_PRESETS[state.activeId as PresetThemeId] ?? THEME_PRESETS[DEFAULT_THEME_ID];
+  // Object.hasOwn, not a plain lookup: activeId comes from localStorage or an imported settings
+  // file, and a name like 'constructor' would otherwise resolve to an inherited Object property.
+  return Object.hasOwn(THEME_PRESETS, state.activeId)
+    ? THEME_PRESETS[state.activeId as PresetThemeId]
+    : THEME_PRESETS[DEFAULT_THEME_ID];
 }
 
 export const useThemeStore = create<ThemeState>()(
