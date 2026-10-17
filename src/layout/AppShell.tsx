@@ -6,6 +6,7 @@ import { useProblemsCount } from '../editor/diagnostics';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunnerStore } from '../execution/runnerStore';
+import { useExecutionStore } from '../execution/store';
 import { WelcomeModal } from '../onboarding/WelcomeModal';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
@@ -68,6 +69,8 @@ export function AppShell() {
   const runId = useRunnerStore((state) => state.runId);
   const code = useRunnerStore((state) => state.code);
   const run = useRunnerStore((state) => state.run);
+  const stop = useRunnerStore((state) => state.stop);
+  const running = useExecutionStore((state) => state.status === 'running');
   const openCommandPalette = useCommandPaletteStore((state) => state.setOpen);
   const openSettings = useSettingsModalStore((state) => state.setOpen);
   const [rightTab, setRightTab] = useState<RightTab>('console');
@@ -113,6 +116,11 @@ export function AppShell() {
             >
               ⌘K
             </button>
+            {running && (
+              <button type="button" className={styles.stop} onClick={stop}>
+                ■ Stop
+              </button>
+            )}
             <button type="button" className={styles.run} onClick={() => void run()}>
               ▸ Run
             </button>

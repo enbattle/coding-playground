@@ -176,11 +176,23 @@ dev` specifically, not just a production build, since that's the environment `ma
   URLs for a run are created _inside_ the iframe by its own bootstrap script, from source text
   embedded in the harness (see `src/execution/sandboxHarness.ts`, ADR 0006). Don't go back to
   creating blob URLs on the main thread and passing the URLs in.
-- Single file only right now (ADR 0008) — no import map, no cross-file specifier rewriting. If
-  multi-file returns, re-read ADR 0006 first: relative import specifiers (`./utils`) cannot resolve
-  against a `blob:` URL referrer at all (non-hierarchical scheme, throws before the import map is
-  even consulted), which is why that earlier implementation had to rewrite compiled `./name`
-  specifiers to bare `name` ones matching bare import-map keys.
+- User code runs in a **classic Web Worker started inside that iframe**, not on the iframe's own
+  thread (ADR 0013). A sandboxed `srcdoc` iframe shares the app's main thread, so code running
+  there directly could freeze the whole page (Stop button included) with a single
+  `while (true) {}`. Unmounting the iframe kills the worker; that's how Stop works. Don't move user
+  code back onto the iframe thread, and don't switch the worker to `type: 'module'`: a module
+  worker created from a blob fails to start in an opaque-origin iframe (confirmed in Chromium).
+  Consequence: no DOM globals in user code (`document`/`window` are undefined).
+- Import maps don't apply in workers, so curated package specifiers are rewritten to full esm.sh
+  URLs at compile time (`src/execution/transpile.ts`'s `after` transformer), not resolved at
+  runtime. Single file only right now (ADR 0008). If multi-file returns, re-read ADR 0006 first:
+  relative import specifiers (`./utils`) cannot resolve against a `blob:` URL referrer at all
+  (non-hierarchical scheme), which is why that earlier implementation had to rewrite compiled
+  `./name` specifiers. The same transformer is the natural place to do that again.
+- "Running" lasts until the worker reports idle: its top level has settled and no
+  timeout/interval is pending (tracked by wrapping the timer functions in the harness). That's
+  what decides when Stop is shown. There's deliberately no execution timeout (see ADR 0013 for
+  why).
 - When testing Monaco input via Playwright, prefer `page.keyboard.insertText(...)` over
   `page.keyboard.type(...)` — `type()` sends real keydown events and can trip Monaco's
   auto-closing-bracket "type over" detection, duplicating closing braces in ways a real human

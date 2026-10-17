@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { buildRuntimeHarness } from './sandboxHarness';
-import { isRuntimeConsoleMessage } from './runtimeMessage';
+import { isRuntimeMessage } from './runtimeMessage';
 import { useExecutionStore } from './store';
 
 /**
@@ -18,8 +18,13 @@ export function RuntimeFrame({ runId, code }: { runId: number; code: string | nu
 
     const onMessage = (event: MessageEvent) => {
       if (event.source !== iframe.contentWindow) return;
-      if (!isRuntimeConsoleMessage(event.data)) return;
-      useExecutionStore.getState().append({ level: event.data.level, text: event.data.text });
+      const message: unknown = event.data;
+      if (!isRuntimeMessage(message)) return;
+      if (message.type === 'status') {
+        useExecutionStore.getState().setStatus(message.status);
+      } else {
+        useExecutionStore.getState().append({ level: message.level, text: message.text });
+      }
     };
 
     window.addEventListener('message', onMessage);
