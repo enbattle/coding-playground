@@ -15,8 +15,12 @@
  * bases keeps the two URL spaces in lockstep — no manual path-prefix rewriting needed, and it
  * doesn't matter that the real URLs may not share a common package-root prefix (lodash-es's case).
  */
-
-const MAX_FILES_PER_PACKAGE = 30;
+/**
+ * A runaway guard, not a budget. Measured against the curated packages: lodash-es needs ~305
+ * files, date-fns ~258, rxjs ~175, zod ~80 — the old cap of 30 silently dropped most of their
+ * exports (e.g. date-fns' `format`), which surfaced as false "has no exported member" errors.
+ */
+const MAX_FILES_PER_PACKAGE = 1000;
 
 function extractRelativeSpecifiers(content: string): string[] {
   const specifiers = new Set<string>();
@@ -28,50 +32,65 @@ function extractRelativeSpecifiers(content: string): string[] {
   return [...specifiers];
 }
 
-async function resolveEntryTypesUrl(moduleUrl: string): Promise<string | null> {
+async function resolveEntryTypesUrl(moduleUrl: string, fetchImpl: typeof fetch) {
   try {
-    const response = await fetch(moduleUrl, { method: 'HEAD' });
+    const response = await fetchImpl(moduleUrl, { method: 'HEAD' });
     return response.headers.get('X-TypeScript-Types');
   } catch {
     return null;
   }
 }
 
-/** Returns virtual URI → file content for every `.d.ts`/`.d.cts` file discovered, entry first. */
+async function fetchText(url: string, fetchImpl: typeof fetch): Promise<string | null> {
+  try {
+    const response = await fetchImpl(url);
+    return response.ok ? await response.text() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns virtual URI → file content for every `.d.ts`/`.d.cts` file discovered, entry first.
+ * Fetches one level of the re-export graph at a time, in parallel — a few hundred sequential
+ * round trips would take far too long for large packages. `fetchImpl` is injectable so the crawl
+ * can be unit-tested against a fake esm.sh.
+ */
 export async function fetchPackageTypes(
   name: string,
   moduleUrl: string,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
-  const entryTypesUrl = await resolveEntryTypesUrl(moduleUrl);
+  const entryTypesUrl = await resolveEntryTypesUrl(moduleUrl, fetchImpl);
   if (!entryTypesUrl) return results;
 
-  const virtualEntry = `file:///node_modules/${name}/index.d.ts`;
-  const queue: [real: string, virtual: string][] = [[entryTypesUrl, virtualEntry]];
-  const visitedReal = new Set<string>();
+  let level: [real: string, virtual: string][] = [
+    [entryTypesUrl, `file:///node_modules/${name}/index.d.ts`],
+  ];
+  const visitedReal = new Set([entryTypesUrl]);
 
-  while (queue.length > 0 && results.size < MAX_FILES_PER_PACKAGE) {
-    const [realUrl, virtualUrl] = queue.shift()!;
-    if (visitedReal.has(realUrl)) continue;
-    visitedReal.add(realUrl);
+  while (level.length > 0) {
+    const fetched = await Promise.all(
+      level.map(async ([realUrl, virtualUrl]) => ({
+        realUrl,
+        virtualUrl,
+        content: await fetchText(realUrl, fetchImpl),
+      })),
+    );
 
-    let content: string;
-    try {
-      const response = await fetch(realUrl);
-      if (!response.ok) continue;
-      content = await response.text();
-    } catch {
-      continue;
+    const next: typeof level = [];
+    for (const { realUrl, virtualUrl, content } of fetched) {
+      if (content === null) continue;
+      results.set(virtualUrl, content);
+      for (const specifier of extractRelativeSpecifiers(content)) {
+        const nextReal = new URL(specifier, realUrl).toString();
+        if (visitedReal.has(nextReal)) continue;
+        visitedReal.add(nextReal);
+        next.push([nextReal, new URL(specifier, virtualUrl).toString()]);
+      }
     }
-
-    results.set(virtualUrl, content);
-
-    for (const specifier of extractRelativeSpecifiers(content)) {
-      const nextReal = new URL(specifier, realUrl).toString();
-      if (visitedReal.has(nextReal)) continue;
-      const nextVirtual = new URL(specifier, virtualUrl).toString();
-      queue.push([nextReal, nextVirtual]);
-    }
+    level = next.slice(0, Math.max(0, MAX_FILES_PER_PACKAGE - results.size));
   }
 
   return results;

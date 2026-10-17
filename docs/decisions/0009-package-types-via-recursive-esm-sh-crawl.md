@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted — see the 2026-10-17 update at the end (cap raised, types loaded on demand, import map replaced by compile-time rewriting per ADR 0013).
 
 ## Context
 
@@ -66,3 +66,23 @@ arbitrary relative-reference structures and cross-path type hosting uniformly. T
 a package with a genuinely huge, deeply-split type surface could get partial IntelliSense; that's an
 acceptable degradation, not a correctness bug, and the cap is there specifically to prevent an
 unbounded crawl on some pathological or misconfigured package.
+
+## Update — 2026-10-17
+
+The 30-file cap turned out to be a correctness bug, not an acceptable degradation. Measured against
+esm.sh, four of the six curated packages need far more files: lodash-es ~305, date-fns ~258, rxjs
+~175, zod ~80. With the cap, date-fns' `format` showed a false "has no exported member" error and
+rxjs's `map` lost its types (a false "implicitly has an 'any' type"), on code that ran fine. The
+e2e suite had only checked nanoid, which needs a single file.
+
+What changed:
+
+- The cap is now 1000, as a real runaway guard rather than a budget, and the crawl fetches each
+  level of the graph in parallel (a few hundred sequential round trips would be far too slow).
+- Types load **on demand**, the first time the code imports a package
+  (`src/packages/packageImports.ts`), not for all six at startup. That's ~800 files total, and most
+  sessions import none of them. Files are registered in one `setExtraLibs` batch per package, not
+  one `addExtraLib` per file, since each extra-lib change revalidates every open model.
+- The static import map described above is gone: user code now runs in a Web Worker, where import
+  maps don't apply, so curated specifiers are rewritten to esm.sh URLs at compile time (ADR 0013).
+- `e2e/package-types.spec.ts` checks a common import from each large package type-checks cleanly.
