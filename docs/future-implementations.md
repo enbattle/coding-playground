@@ -74,34 +74,14 @@ would need a binding into Monaco (the established library for this is `y-monaco`
 for transport, and almost certainly the accounts entry above done first — collaboration needs a
 notion of "who," which anonymous local-only playgrounds don't have.
 
-## CI-gated deploy
-
-**What:** deploying automatically from CI after the `verify` and `e2e` jobs pass on `main`,
-instead of by hand.
-
-**Current state:** the app is deployed to GitHub Pages (https://enbattle.github.io/coding-playground/,
-set up after Phase 10; see `docs/build-history.md`). Deploys are manual: `npm run deploy` builds and
-pushes `dist/` to the `gh-pages` branch with the `gh-pages` package, regardless of whether CI is
-green. There are no per-PR preview URLs.
-
-**Why deferred:** manual deploys are fine for a solo project that deploys rarely. The trigger to
-automate is deploying often enough that "did I run the checks first?" becomes a real risk, or a
-second contributor.
-
-**Next step when picked up:** add a `deploy` job to `.github/workflows/ci.yml` that `needs:
-[verify, e2e]`, runs only on pushes to `main`, and publishes with GitHub's own Pages actions
-(`actions/upload-pages-artifact` + `actions/deploy-pages`, which need `pages: write` and
-`id-token: write` on that job only, keeping the workflow's least-privilege default). Switch the
-repo's Pages source from the `gh-pages` branch to GitHub Actions, then retire the `gh-pages`
-dependency and the `deploy`/`predeploy` scripts. Keep `base` in `vite.config.ts`. Per-PR previews
-would need a different host (Vercel, Netlify, Cloudflare Pages); only worth it if reviewing PRs
-in a browser becomes a real need.
-
 ## Smaller, already-tracked deferrals
 
 These are deliberately deferred too, but smaller or already documented elsewhere, so they're
 listed here only for discoverability, not duplicated:
 
+- **Per-PR preview deploys** — GitHub Pages serves one site per repo, so a PR can't get its own
+  preview URL there. That needs a host with built-in previews (Vercel, Netlify, Cloudflare Pages);
+  only worth switching if reviewing PRs in a browser becomes a real need.
 - **Multi-file editing / the Preview tab** — built once (Phase 4), then rolled back for UX reasons,
   not a technical failure. Full reasoning, what got removed, and what a future re-attempt should do
   differently: `docs/decisions/0008-roll-back-multi-file-and-preview.md`.

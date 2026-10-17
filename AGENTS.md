@@ -16,7 +16,7 @@ knowing something actually works, not just that it compiles — read that one be
 is done because the checks passed. `docs/engineering-principles.md` is the design-principles
 reference (YAGNI, KISS, DRY, SoC, SOLID, TDD — what each means here and when it doesn't apply).
 `docs/future-implementations.md` tracks what's deliberately not built yet (accounts/cloud-save,
-collaboration, AI theme generation, CI-gated deploy) and what to do first when picking one up —
+collaboration, AI theme generation, per-PR previews) and what to do first when picking one up —
 check it before scoping any of those from scratch.
 
 ## Conventions
@@ -221,10 +221,10 @@ dev` specifically, not just a production build, since that's the environment `ma
   `docs/testing-strategy.md`). Anything touching Monaco, workers, iframes, blob URLs, persistence,
   or accessibility belongs here, not in a hand-run script — see that doc before adding a spec.
 - Before every commit: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` must pass. Run `npm run test:e2e` too for anything touching editor/execution/persistence/a11y — it's slower, so not part of the default chain, but CI runs it on every push and pull request.
-- `npm run deploy` — builds and publishes `dist/` to the `gh-pages` branch, which GitHub Pages
-  serves at https://enbattle.github.io/coding-playground/ (`base` in `vite.config.ts` must match
-  that path). It's manual and not gated on CI, so run it only when asked, from an up-to-date
-  `main` with CI green.
+- Deploy is automatic: every push to `main` deploys to https://enbattle.github.io/coding-playground/
+  through CI's `deploy` job, once `verify` and `e2e` pass (`.github/workflows/ci.yml`). There is no
+  manual deploy command; don't add one. So merging to `main` is shipping. `base` in
+  `vite.config.ts` must stay `/coding-playground/` to match the Pages path.
 
 ## Architectural decisions
 
