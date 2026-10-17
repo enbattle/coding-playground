@@ -69,6 +69,10 @@ hard way while writing this suite:
 
 ## Decision guide
 
+For _when_ to write the test (first, spec-first, or spike-then-test) by layer, see
+`docs/engineering-principles.md`'s TDD section. Most existing pure logic has no unit tests yet —
+add them to a module when you change it rather than backfilling everything at once.
+
 - Writing a pure function or a store? Write a Vitest test for it — no reason not to.
 - Adding UI that doesn't need Monaco to actually render? Vitest + Testing Library.
 - Touching Monaco, the transpile worker, the sandboxed iframe, persistence/sharing, or anything

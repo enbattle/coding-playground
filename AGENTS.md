@@ -13,7 +13,8 @@ Read `docs/build-history.md` before picking up work here cold — it's the phase
 what shipped when, including every real deviation from the original 10-phase plan. `docs/decisions/`
 has the why for individual architectural calls; `docs/verification-discipline.md` has the how for
 knowing something actually works, not just that it compiles — read that one before assuming a change
-is done because the checks passed. `docs/future-implementations.md` tracks what's deliberately not
+is done because the checks passed. `docs/engineering-principles.md` is the design-principles reference (YAGNI, KISS, DRY, SoC, SOLID,
+TDD — what each means here and when it doesn't apply). `docs/future-implementations.md` tracks what's deliberately not
 built yet (accounts/cloud-save, collaboration, deploy, AI theme generation) and what to do first when
 picking one up — check it before scoping any of those from scratch.
 
@@ -48,6 +49,30 @@ picking one up — check it before scoping any of those from scratch.
   `FontKey` registry (`src/theme/fonts.ts`), and each curated theme's signature decorative motif
   lives in `src/theme/motifs.tsx`, not in tokens. See
   `docs/decisions/0004-theme-tokens-and-ai-ready-generation.md` before changing this system.
+
+## Design principles
+
+Full reasoning, repo examples, and where each principle stops applying:
+`docs/engineering-principles.md` — read it before adding a module, store, shared helper, or any
+other new abstraction. The binding rules:
+
+- **Rule of thumb:** write the simplest code that meets today's need, with its test first. Add a
+  split, an interface or a shared helper only when you can name the change or test it makes
+  easier, and when you can't tell whether two copies share a rule, wait for a third. Duplication is
+  far cheaper than the wrong abstraction.
+- **Test first where it works:** pure logic, stores, and every bug fix start with a failing test.
+  Browser-only behavior starts with a failing `e2e/` spec if the behavior is known, or a spike then
+  a spec if it isn't. See the layer table in that doc.
+- **Every new or changed test must have been seen failing for the right reason** — by writing it
+  first, or by temporarily reverting the fix and watching it go red.
+- **Name the payoff:** when a commit adds a new abstraction (shared helper, module split,
+  interface, option, seam), its commit message body says which change or test it makes easier.
+  If you can't name one, don't add it.
+- **Speculative seams only at one-way doors** — persisted/shared data formats (localStorage,
+  share links, exported files), never code shape. Existing seams and their status are listed in
+  that doc; don't extend the grandfathered ones.
+- These are heuristics, not laws. Departing from one is fine when it's the better call; say why
+  in the commit message (or an ADR, if it's of ADR weight).
 
 ## Monaco integration notes
 
