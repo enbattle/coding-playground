@@ -31,8 +31,14 @@ export function SharingPanel() {
   }, [open]);
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(buildShareUrl());
-    setCopyLabel('Copied ✓');
+    // writeText rejects without clipboard permission, in an insecure context, or when the
+    // document isn't focused — say so rather than leave an unhandled rejection and no feedback.
+    try {
+      await navigator.clipboard.writeText(buildShareUrl());
+      setCopyLabel('Copied ✓');
+    } catch {
+      setCopyLabel("Couldn't copy");
+    }
     window.setTimeout(() => setCopyLabel('Copy link'), 1500);
   };
 

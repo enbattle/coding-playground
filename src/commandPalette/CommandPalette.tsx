@@ -79,6 +79,11 @@ export function CommandPalette() {
             } else if (event.key === 'ArrowUp') {
               event.preventDefault();
               setActiveIndex((index) => Math.max(index - 1, 0));
+            } else if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+              // ⌘/Ctrl+Enter is "run my code" everywhere; the window-level listener above handles
+              // it. Without this branch it also counted as plain Enter here, running the
+              // highlighted command as well.
+              setOpen(false);
             } else if (event.key === 'Enter') {
               event.preventDefault();
               runActive();
