@@ -115,6 +115,29 @@ message with no re-edit), then the workaround was deleted as unnecessary rather 
 safe." **A workaround for a library's assumed limitation should be justified by reading the
 library's actual behavior, not by the workaround compiling and seeming to help.**
 
+## A test that passes before the fix proves nothing
+
+`docs/engineering-principles.md` requires every test to have been seen failing for the right
+reason. Phase 10.7 showed why with three tests that passed before the fix they were written to
+prove:
+
+- **The Stop-button tests passed against the old, page-freezing harness.** They waited for
+  `getByText('loop started')` and then clicked Stop. Page-wide text matching can also match the
+  program's _source code_, which is on screen in the editor before anything runs. So Stop was
+  clicked before the loop had even started. Caught only by deliberately re-running the tests
+  against the old harness. Fix: program output is asserted through the console's `role="log"`
+  region (`consoleOutput()` in `e2e/helpers.ts`), never page-wide.
+- **"No problems" passed before diagnostics existed.** A package-types test asserting the
+  Problems tab shows no count also matches the moment before Monaco has computed anything. Fix:
+  include one deliberate error and assert exactly `Problems (1)`, which proves diagnostics ran.
+- **A storage-full test couldn't fail.** It filled `localStorage` loosely, then overwrote an
+  existing key with a _smaller_ value, which needs no new space, so the write the test depended on
+  never failed. Fix: fill thoroughly and write something larger than what's stored.
+
+The pattern: an assertion that can be satisfied by the state _before_ the behavior under test
+happens. Before trusting a new test, run it against the code without the fix (`git stash` the fix,
+or check out the old file) and watch it fail at the assertion you expect.
+
 ## A fix isn't done until it's re-verified, and the whole chain is still green
 
 Every fix in this build was re-run against the same reproduction that found it before being

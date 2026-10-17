@@ -83,13 +83,14 @@ couples things that should change independently.
 - **Already DRY, the right way:** `src/packages/registry.ts` (one entry drives execution,
   IntelliSense, and the panel), `SETTINGS_SCHEMA_VERSION`, the keyboard-shortcuts list shared by
   Settings and the Welcome modal, `waitForMonaco()` in `e2e/helpers.ts`.
-- **At the rule of three, and already drifting:** "copy the recognized compiler-option keys from
-  an untrusted object into the store" appears in `src/sharing/shareLink.ts`,
-  `src/settings/localData.ts`, and `src/sharing/savedPlaygroundsStore.ts` (plus a near-copy for
-  editor settings in `localData.ts`). The copies already differ — the saved-playground one skips the
-  `key in` check — and none of them validates values, only keys. That drift is exactly what DRY
-  exists to prevent; it's the first candidate for a shared, tested helper the next time any of
-  those files is touched.
+- **Extracted at the rule of three, after drifting:** "copy the recognized compiler-option keys
+  from an untrusted object into the store" was copied into share links, settings import, and
+  saved-playground loading. By the time it was extracted, the copies had already diverged (one
+  skipped the `key in` check) and none of them validated values, so a link could store
+  `target: "ES3"`. It's now one tested gate, `pickCompilerOptions()` in
+  `src/settings/compilerOptions.ts`. That's what DRY exists to prevent. The editor-settings
+  import loop in `localData.ts` looks similar but encodes a different rule and is the only copy,
+  so it stays inline for now.
 - **At two, so wait:** the blob-download dance in `exportSettings()` and `downloadCurrentCode()`.
 
 When an abstraction turns out wrong — callers start passing flags to make it behave differently for
@@ -166,8 +167,8 @@ Where TDD is weak here, and what to do about it:
 - **No objective oracle** — "this layout looks balanced" has no assertion. Don't fake one with
   brittle snapshot or pixel tests.
 
-**Existing code:** most current pure logic predates this doc and has no unit tests
-(`filterCommands`, share-link decoding, settings import, `extractRelativeSpecifiers` in
-`src/packages/esmSh.ts`, `escapeForInlineScript` in `src/execution/sandboxHarness.ts`,
-`resolveActiveTokens`, `isRuntimeConsoleMessage`). Don't backfill it all at once; add tests to a
-module when you change it.
+**Existing code:** some older pure logic still has no direct unit tests: `filterCommands`,
+`importSettingsFromText` (its compiler-options part is covered via `pickCompilerOptions`),
+`isRuntimeMessage`, and the pure helpers inside `MonacoEditor.tsx`. Don't backfill it all at once;
+add tests to a module when you change it, as Phase 10.7 did for share links, the type crawl, the
+sandbox harness, and theme resolution.
