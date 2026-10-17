@@ -78,18 +78,19 @@ edit. Two blocks that look alike but encode different rules aren't duplication, 
 couples things that should change independently.
 
 - **Not duplication:** the two `TARGET_MAP`s (`src/editor/monacoCompilerOptions.ts`,
-  `src/execution/transpile.worker.ts`). Same keys, but each maps to a different library's enum, and
+  `src/execution/transpile.ts`). Same keys, but each maps to a different library's enum, and
   ADR 0007 deliberately has each consumer map independently.
 - **Already DRY, the right way:** `src/packages/registry.ts` (one entry drives execution,
   IntelliSense, and the panel), `SETTINGS_SCHEMA_VERSION`, the keyboard-shortcuts list shared by
   Settings and the Welcome modal, `waitForMonaco()` in `e2e/helpers.ts`.
-- **At the rule of three, and already drifting:** "copy the recognized compiler-option keys from
-  an untrusted object into the store" appears in `src/sharing/shareLink.ts`,
-  `src/settings/localData.ts`, and `src/sharing/savedPlaygroundsStore.ts` (plus a near-copy for
-  editor settings in `localData.ts`). The copies already differ — the saved-playground one skips the
-  `key in` check — and none of them validates values, only keys. That drift is exactly what DRY
-  exists to prevent; it's the first candidate for a shared, tested helper the next time any of
-  those files is touched.
+- **Extracted at the rule of three, after drifting:** "copy the recognized compiler-option keys
+  from an untrusted object into the store" was copied into share links, settings import, and
+  saved-playground loading. By the time it was extracted, the copies had already diverged (one
+  skipped the `key in` check) and none of them validated values, so a link could store
+  `target: "ES3"`. It's now one tested gate, `pickCompilerOptions()` in
+  `src/settings/compilerOptions.ts`. That's what DRY exists to prevent. The editor-settings
+  import loop in `localData.ts` looks similar but encodes a different rule and is the only copy,
+  so it stays inline for now.
 - **At two, so wait:** the blob-download dance in `exportSettings()` and `downloadCurrentCode()`.
 
 When an abstraction turns out wrong — callers start passing flags to make it behave differently for
@@ -99,15 +100,19 @@ add another parameter.
 ## SoC — separation of concerns
 
 Already the backbone of the layout: one directory per domain, one Zustand store per concern, three
-independent TypeScript engines (Monaco's worker for diagnostics, the transpile worker for execution,
-the iframe for running — ADR 0002).
+independent execution stages (Monaco's worker for diagnostics, the transpile worker for compiling,
+a worker inside the sandboxed iframe for running — ADRs 0002 and 0013). `src/execution/transpile.ts`
+is the same split at file level: the compile logic is a pure, unit-tested function, and
+`transpile.worker.ts` is only message plumbing around it.
 
 The practical test at the function level: **can this logic be unit-tested without mocking a store,
 `window`, `history`, or Monaco?** If not, the logic and its side effects are in one function. Split
 it into a pure core (parse, validate, compute — takes values, returns values) and a thin shell
-(reads stores, writes stores, touches the DOM). `applyShareLinkFromHash()` is the current example:
-decoding, validation, `history.replaceState`, and store writes all in one function, which is why it
-has no unit test.
+(reads stores, writes stores, touches the DOM). `src/sharing/shareLink.ts` is a worked example. It
+started as one `applyShareLinkFromHash()` doing decoding, validation, `history.replaceState`, and
+store writes, with no unit test. Adding the "ask before replacing your work" prompt split it into
+pure `parseSharePayload()` and `needsConfirmation()` (unit-tested) and a thin
+`openShareLinkFromHash()` shell. The split happened when a change needed it, not before.
 
 `MonacoEditor.tsx` is deliberately the integration hub between the stores and Monaco — that's its
 one concern, and it's fine for it to have many small subscription effects. Keep _logic_ out of it:
@@ -164,8 +169,8 @@ Where TDD is weak here, and what to do about it:
 - **No objective oracle** — "this layout looks balanced" has no assertion. Don't fake one with
   brittle snapshot or pixel tests.
 
-**Existing code:** most current pure logic predates this doc and has no unit tests
-(`filterCommands`, share-link decoding, settings import, `extractRelativeSpecifiers` in
-`src/packages/esmSh.ts`, `escapeForInlineScript` in `src/execution/sandboxHarness.ts`,
-`resolveActiveTokens`, `isRuntimeConsoleMessage`). Don't backfill it all at once; add tests to a
-module when you change it.
+**Existing code:** some older pure logic still has no direct unit tests: `filterCommands`,
+`importSettingsFromText` (its compiler-options part is covered via `pickCompilerOptions`),
+`isRuntimeMessage`, and the pure helpers inside `MonacoEditor.tsx`. Don't backfill it all at once;
+add tests to a module when you change it, as Phase 10.7 did for share links, the type crawl, the
+sandbox harness, and theme resolution.

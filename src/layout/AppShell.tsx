@@ -6,11 +6,14 @@ import { useProblemsCount } from '../editor/diagnostics';
 import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunnerStore } from '../execution/runnerStore';
+import { useExecutionStore } from '../execution/store';
 import { WelcomeModal } from '../onboarding/WelcomeModal';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
+import { useStorageHealthStore } from '../settings/safeStorage';
 import { SettingsModal } from '../settings/SettingsModal';
 import { useSettingsModalStore } from '../settings/settingsModalStore';
+import { ShareLinkPrompt } from '../sharing/ShareLinkPrompt';
 import { SharingPanel } from '../sharing/SharingPanel';
 import { ThemeMotif } from '../theme/motifs';
 import { useThemeStore, resolveActiveTokens } from '../theme/store';
@@ -68,11 +71,14 @@ export function AppShell() {
   const runId = useRunnerStore((state) => state.runId);
   const code = useRunnerStore((state) => state.code);
   const run = useRunnerStore((state) => state.run);
+  const stop = useRunnerStore((state) => state.stop);
+  const running = useExecutionStore((state) => state.status === 'running');
   const openCommandPalette = useCommandPaletteStore((state) => state.setOpen);
   const openSettings = useSettingsModalStore((state) => state.setOpen);
   const [rightTab, setRightTab] = useState<RightTab>('console');
   const problemsCount = useProblemsCount();
   const narrow = useIsNarrowViewport();
+  const storageFull = useStorageHealthStore((state) => state.writeFailed);
 
   if (narrow) {
     return (
@@ -113,6 +119,11 @@ export function AppShell() {
             >
               ⌘K
             </button>
+            {running && (
+              <button type="button" className={styles.stop} onClick={stop}>
+                ■ Stop
+              </button>
+            )}
             <button type="button" className={styles.run} onClick={() => void run()}>
               ▸ Run
             </button>
@@ -159,6 +170,12 @@ export function AppShell() {
           <RuntimeFrame runId={runId} code={code} />
           <footer className={styles.footer}>
             <span>index.ts</span>
+            {storageFull && (
+              <span role="alert" className={styles.storageWarning}>
+                ⚠ Changes aren't being saved: browser storage is full. Delete saved playgrounds
+                (under Share) to free space.
+              </span>
+            )}
             <span>{tokens.name}</span>
           </footer>
         </main>
@@ -166,6 +183,7 @@ export function AppShell() {
       <CommandPalette />
       <SettingsModal />
       <WelcomeModal />
+      <ShareLinkPrompt />
     </>
   );
 }

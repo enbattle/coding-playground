@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useEditorStore } from '../editor/store';
-import { DEFAULT_COMPILER_OPTIONS, type CompilerOptionValues } from '../settings/compilerOptions';
+import {
+  DEFAULT_COMPILER_OPTIONS,
+  pickCompilerOptions,
+  type CompilerOptionValues,
+} from '../settings/compilerOptions';
 import { getCompilerOptionValues, useCompilerOptionsStore } from '../settings/compilerOptionsStore';
+import { persistStorage } from '../settings/safeStorage';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
 interface SavedPlayground {
@@ -39,14 +44,18 @@ export const useSavedPlaygroundsStore = create<SavedPlaygroundsState>()(
         const item = get().items.find((entry) => entry.id === id);
         if (!item) return;
         useEditorStore.getState().setContent(item.code);
-        for (const key of Object.keys(DEFAULT_COMPILER_OPTIONS) as (keyof CompilerOptionValues)[]) {
-          useCompilerOptionsStore.getState().setOption(key, item.compilerOptions[key]);
-        }
+        // A snapshot saved before an option existed won't carry it — defaults fill the gap rather
+        // than whatever happens to be set now.
+        useCompilerOptionsStore.setState({
+          ...DEFAULT_COMPILER_OPTIONS,
+          ...pickCompilerOptions(item.compilerOptions),
+        });
       },
     }),
     {
       name: 'coding-playground:saved-playgrounds',
       version: SETTINGS_SCHEMA_VERSION,
+      storage: persistStorage,
       migrate: (persistedState) => persistedState as SavedPlaygroundsState,
     },
   ),

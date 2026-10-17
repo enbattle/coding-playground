@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted — amended by [0013](./0013-user-code-runs-in-a-worker-inside-the-sandbox.md): the iframe now runs user code in a Web Worker it starts, so execution can be stopped.
 
 ## Context
 

@@ -40,6 +40,12 @@ export function getCommands(): Command[] {
       run: () => void useRunnerStore.getState().run(),
     },
     {
+      id: 'stop',
+      label: 'Stop Execution',
+      keywords: ['kill', 'halt', 'cancel'],
+      run: () => useRunnerStore.getState().stop(),
+    },
+    {
       id: 'format',
       label: 'Format Document',
       shortcut: '⇧⌥F',

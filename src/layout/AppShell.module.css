@@ -93,6 +93,23 @@
   cursor: pointer;
 }
 
+/* Same footprint as .run so the header doesn't shift when it appears; outlined in the danger color
+   rather than filled, so it reads as secondary to Run. */
+.stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--cp-color-danger);
+  border: 1px solid var(--cp-color-danger);
+  font-family: var(--cp-font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 6px 15px;
+  border-radius: var(--cp-radius-sm);
+  cursor: pointer;
+}
+
 .editorHost {
   height: 100%;
 }
@@ -189,4 +206,8 @@
   font-family: var(--cp-font-mono);
   font-size: 10.5px;
   color: var(--cp-color-text-dim);
+}
+
+.storageWarning {
+  color: var(--cp-color-danger);
 }

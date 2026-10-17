@@ -74,33 +74,33 @@ would need a binding into Monaco (the established library for this is `y-monaco`
 for transport, and almost certainly the accounts entry above done first — collaboration needs a
 notion of "who," which anonymous local-only playgrounds don't have.
 
-## Deploy
+## CI-gated deploy
 
-**What:** picking and configuring a static host so the app is reachable at a public URL, and
-deciding how a deploy triggers (host's own Git integration vs. a dedicated CI step).
+**What:** deploying automatically from CI after the `verify` and `e2e` jobs pass on `main`,
+instead of by hand.
 
-**Why deferred:** explicitly parked at the end of Phase 10 — more time wanted to decide on a host,
-not blocked on anything technical.
+**Current state:** the app is deployed to GitHub Pages (https://enbattle.github.io/coding-playground/,
+set up after Phase 10; see `docs/build-history.md`). Deploys are manual: `npm run deploy` builds and
+pushes `dist/` to the `gh-pages` branch with the `gh-pages` package, regardless of whether CI is
+green. There are no per-PR preview URLs.
 
-**Current state:** `npm run build` produces a clean `dist/` (static HTML/CSS/JS, content-hashed
-filenames), CI is hardened (concurrency cancellation, least-privilege permissions, job timeouts,
-Playwright caching — see the `ci:` commit in `docs/build-history.md`'s Phase 10 entry), and the
-app's architecture makes deploy close to trivial once a host is picked: no server-side routing
-needed (single page, no router), no rewrite rules needed (the share-link mechanism lives entirely
-in the URL hash, which never reaches a server).
+**Why deferred:** manual deploys are fine for a solo project that deploys rarely. The trigger to
+automate is deploying often enough that "did I run the checks first?" becomes a real risk, or a
+second contributor.
 
-**Next step when picked up:** three reasonable options were discussed, roughly in order of least
-setup friction: **Vercel or Netlify** (near-zero-config Vite detection, free tier, automatic preview
-URLs per PR), **Cloudflare Pages** (same ease, no Vercel/Netlify account needed if that matters),
-**GitHub Pages** (free, no new account since the repo's already on GitHub, but needs `base` set in
-`vite.config.ts` to match the repo path, and no built-in per-PR previews). The other real decision:
-gate the deploy behind the existing `verify` + `e2e` CI jobs passing, rather than deploying
-independently of test results.
+**Next step when picked up:** add a `deploy` job to `.github/workflows/ci.yml` that `needs:
+[verify, e2e]`, runs only on pushes to `main`, and publishes with GitHub's own Pages actions
+(`actions/upload-pages-artifact` + `actions/deploy-pages`, which need `pages: write` and
+`id-token: write` on that job only, keeping the workflow's least-privilege default). Switch the
+repo's Pages source from the `gh-pages` branch to GitHub Actions, then retire the `gh-pages`
+dependency and the `deploy`/`predeploy` scripts. Keep `base` in `vite.config.ts`. Per-PR previews
+would need a different host (Vercel, Netlify, Cloudflare Pages); only worth it if reviewing PRs
+in a browser becomes a real need.
 
 ## Smaller, already-tracked deferrals
 
-Two more things are deliberately deferred but already have a home elsewhere, so they're listed here
-only for discoverability, not duplicated:
+These are deliberately deferred too, but smaller or already documented elsewhere, so they're
+listed here only for discoverability, not duplicated:
 
 - **Multi-file editing / the Preview tab** — built once (Phase 4), then rolled back for UX reasons,
   not a technical failure. Full reasoning, what got removed, and what a future re-attempt should do
@@ -111,6 +111,7 @@ only for discoverability, not duplicated:
   Firefox/WebKit projects.
 - **"Don't show again" for the welcome modal** — `src/onboarding/WelcomeModal.tsx` currently opens
   on every load (`welcomeModalStore.ts`'s `open` starts `true`, no persistence). Next step: add a
-  `dismissed` flag to that store behind `persist` (same pattern as `editorSettingsStore.ts`), gate
-  the initial `open` value on it, and add its key to `src/settings/localData.ts`'s `PERSISTED_KEYS`
-  so "Clear local data" and settings export/import both cover it.
+  `dismissed` flag to that store behind `persist` with `storage: persistStorage` (same pattern as
+  `editorSettingsStore.ts`), gate the initial `open` value on it, and add its key to
+  `src/settings/localData.ts`'s `PERSISTED_KEYS` so "Clear local data" and settings export/import
+  both cover it.

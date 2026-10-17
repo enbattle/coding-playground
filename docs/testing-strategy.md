@@ -29,8 +29,9 @@ So testing here is deliberately split by what's actually being verified:
 Phase 9 formalized what had been ad hoc, throwaway browser checks (Playwright driven by hand from
 the session scratchpad, one script per phase, discarded after use — Phases 3 through 8 were all
 verified this way) into a real committed suite. One spec file per concern, mirroring the app's own
-`src/` layout: `editor-and-run`, `settings-and-compiler-options`, `sharing-and-persistence`,
-`packages-and-theme`, `onboarding-examples`, `accessibility`.
+`src/` layout: `editor-and-run`, `editor-intellisense`, `settings-and-compiler-options`,
+`sharing-and-persistence`, `packages-and-theme`, `package-types`, `onboarding-examples`,
+`accessibility`.
 
 **Runs against a real production build, not `vite dev`.** `playwright.config.ts`'s `webServer`
 calls `npm run e2e:serve` (`vite build && vite preview`), deliberately — Vite's dev server bypasses
@@ -70,8 +71,11 @@ hard way while writing this suite:
 ## Decision guide
 
 For _when_ to write the test (first, spec-first, or spike-then-test) by layer, see
-`docs/engineering-principles.md`'s TDD section. Most existing pure logic has no unit tests yet —
-add them to a module when you change it rather than backfilling everything at once.
+`docs/engineering-principles.md`'s TDD section. Some older pure logic still has no unit tests (that
+doc lists what's left); add them to a module when you change it rather than backfilling everything
+at once. In `e2e/`, assert program output through `consoleOutput(page)`, never a page-wide
+`getByText`, which also matches the source code in the editor (see
+`docs/verification-discipline.md`).
 
 - Writing a pure function or a store? Write a Vitest test for it — no reason not to.
 - Adding UI that doesn't need Monaco to actually render? Vitest + Testing Library.

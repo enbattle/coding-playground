@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { waitForMonaco } from './helpers';
+// lz-string is CommonJS; under Playwright's Node ESM loader only the default export is reliable.
+import LZString from 'lz-string';
+import { setEditorContent, waitForMonaco } from './helpers';
 
 test.describe('accessibility', () => {
   test('main shell has no automatically detectable a11y violations', async ({ page }) => {
@@ -58,6 +60,34 @@ test.describe('accessibility', () => {
       () => document.activeElement?.getAttribute('aria-label') === 'Open settings',
     );
     expect(focusReturned).toBe(true);
+  });
+
+  test('share-link prompt has no violations, traps focus, and Escape keeps the current code', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+    await setEditorContent(page, 'const mine = "a11y-own-work";\n');
+    await page.waitForTimeout(300);
+
+    const hash = LZString.compressToEncodedURIComponent(
+      JSON.stringify({ v: 1, code: 'console.log("shared")', compilerOptions: {} }),
+    );
+    const receiver = await context.newPage();
+    await receiver.goto(`/#${hash}`);
+    const dialog = receiver.getByRole('dialog', { name: 'Open shared code?' });
+    await expect(dialog).toBeVisible();
+
+    const results = await new AxeBuilder({ page: receiver }).include('[role="dialog"]').analyze();
+    expect(results.violations).toEqual([]);
+
+    for (let i = 0; i < 10; i++) await receiver.keyboard.press('Tab');
+    expect(await dialog.evaluate((node) => node.contains(document.activeElement))).toBe(true);
+
+    await receiver.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(receiver.locator('.monaco-editor .view-lines')).toContainText('a11y-own-work');
   });
 
   test('command palette has no automatically detectable a11y violations', async ({ page }) => {

@@ -7,8 +7,8 @@ _how correctness gets verified_): this doc records _what shipped when, and in wh
 future session — on this project or a different one — can understand the arc without reconstructing
 it from `git log`.
 
-Like `docs/testing-strategy.md`, this is a living document for the phases still ahead (right now,
-just deploy) — append to it rather than treating it as closed once Phase 10 finishes.
+Like `docs/testing-strategy.md`, this is a living document — append to it as work lands rather than
+treating it as closed now that the original 10 phases are done.
 
 ## Phase 1 — Scaffold
 
@@ -162,11 +162,15 @@ The biggest single phase for real bugs found via verification, not just features
 CI hardening done: concurrency cancellation (a new push cancels an in-flight run for the same
 branch/PR), least-privilege `permissions: contents: read`, `timeout-minutes` on both jobs (a hung
 `webServer` startup is a real failure mode — it happened locally, more than once, while building the
-e2e suite), and Playwright browser-binary caching. Deploy (picking and configuring a static host) is
-still open — deliberately deferred, not forgotten; the app's architecture (no backend, no
-client-side router, share links living entirely in the URL hash) means deploy is close to "point any
-static host at `dist/`" once a host is chosen. See `docs/future-implementations.md` for the host
-options already discussed.
+e2e suite), and Playwright browser-binary caching. Deploy was deferred at first to decide on a host.
+
+It was set up later, after Phase 10.6 (`da2b1bb`), on **GitHub Pages**: no new account, since the
+repo is already on GitHub. `vite.config.ts` sets `base: '/coding-playground/'` for the project-page
+path, `public/.nojekyll` stops Jekyll from processing the built assets, and `npm run deploy`
+(the `gh-pages` package) publishes `dist/` to the `gh-pages` branch. It's manual and not gated on
+CI; automating it is tracked in `docs/future-implementations.md`. No rewrite rules were needed,
+since the app has no client-side router and share links live in the URL hash, which never reaches
+the server.
 
 ## Phase 10.5 — First-load welcome modal _(scope addition — not strictly in the original plan)_
 
@@ -212,6 +216,40 @@ for two features that had none:
   other spec) doesn't reliably exercise Monaco's auto-trigger-while-typing behavior the way real
   keystrokes do — an early version of this suite's autocomplete check using bulk insertion gave a
   false positive that would have hidden the `npm run dev` regression above.
+
+## Phase 10.7 — Robustness and correctness pass _(scope addition)_
+
+A whole-codebase robustness review after `docs/engineering-principles.md` landed, fixed test-first
+(one commit per issue). Each bug below was reproduced by a failing test before it was fixed.
+
+- **Infinite loops froze the whole page.** Measured: an opaque-origin sandboxed `srcdoc` iframe
+  shares the app's main thread, so `while (true) {}` stopped all rendering. User code now runs in a
+  classic Web Worker started inside the sandbox iframe, with a **Stop** button (shown while the
+  program's top level or any timer/interval is still pending) that kills it instantly. Curated
+  package imports are rewritten to esm.sh URLs at compile time, since import maps don't apply in
+  workers. ADR 0013; no execution timeout, by design.
+- **Console floods hung the tab** (`for (…200000) console.log(i)`): the console now keeps the
+  latest 1,000 lines, the sandbox batches past a per-50 ms quota, and the page updates once per
+  frame. The single biggest cost turned out to be mirroring every line to the browser's own
+  console. Removing that alone took the flood from 8–15 s unresponsive to under half a second.
+- **False IntelliSense errors** for date-fns (`format`) and rxjs (`map`): the type crawl stopped at
+  30 files, while these packages need 80–305. Types now load completely, in parallel, and only
+  when the code imports the package. ADR 0009 has a dated update.
+- **Opening a share link silently destroyed the user's autosaved work**, with no undo. It now asks
+  first (a modal matching the others), and opening saves the current code as a snapshot.
+- **Outside data was trusted too much:** share links, imported settings and saved snapshots could
+  store compiler-option values nothing could map (`target: "ES3"`), and theme ids like
+  `"constructor"` resolved to an inherited Object property. One validated gate now
+  (`pickCompilerOptions`), replacing three drifting copies.
+- **A full `localStorage` failed silently** (persist doesn't catch write errors), so autosave stopped
+  without telling anyone. The footer now warns.
+- Smaller: console output for `undefined`/Map/Set/functions/bigint/cycles (was `JSON.stringify`
+  mangling), a harness-breaking `<!--<script` edge case, Run hanging forever if the compiler
+  worker failed to load, overlapping runs mixing output, Copy link failing silently, Ctrl+Enter in
+  the palette doing two things.
+
+Three of the new tests initially passed _before_ the fix they were meant to prove; see
+`docs/verification-discipline.md`'s "A test that passes before the fix proves nothing".
 
 ## Deviations from the original plan
 

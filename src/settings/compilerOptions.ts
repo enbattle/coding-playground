@@ -37,3 +37,32 @@ export const TARGET_OPTIONS: TargetOption[] = [
   'ES2020',
   'ESNext',
 ];
+
+type BooleanOptionKey = Exclude<keyof CompilerOptionValues, 'target'>;
+
+const BOOLEAN_OPTION_KEYS = Object.keys(DEFAULT_COMPILER_OPTIONS).filter(
+  (key) => key !== 'target',
+) as BooleanOptionKey[];
+
+/**
+ * The one gate for compiler options arriving from outside data — share links, imported settings
+ * files, saved-playground snapshots. Keeps only known, own keys whose values are valid (a `target`
+ * from TARGET_OPTIONS, real booleans for everything else) and drops the rest, so a malformed or
+ * hand-edited payload can never put a value into the store that Monaco and the transpile worker
+ * have no mapping for. Never throws.
+ */
+export function pickCompilerOptions(input: unknown): Partial<CompilerOptionValues> {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) return {};
+  const source = input as Record<string, unknown>;
+  const picked: Partial<CompilerOptionValues> = {};
+
+  if (Object.hasOwn(source, 'target') && TARGET_OPTIONS.includes(source.target as TargetOption)) {
+    picked.target = source.target as TargetOption;
+  }
+  for (const key of BOOLEAN_OPTION_KEYS) {
+    if (Object.hasOwn(source, key) && typeof source[key] === 'boolean') {
+      picked[key] = source[key];
+    }
+  }
+  return picked;
+}

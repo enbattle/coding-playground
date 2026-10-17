@@ -45,3 +45,13 @@ export async function getEditorText(page: Page): Promise<string> {
   const raw = await page.locator('.monaco-editor .view-lines').innerText();
   return raw.replace(/ /g, ' ');
 }
+
+/**
+ * The console's output region. Assert program output through this, never with a page-wide
+ * getByText: the code that prints a string is visible in the editor before it ever runs, so a
+ * page-wide match can pass before execution starts (it made an early version of the Stop tests
+ * pass against the old, page-freezing harness).
+ */
+export function consoleOutput(page: Page) {
+  return page.getByRole('log', { name: 'Console output' });
+}

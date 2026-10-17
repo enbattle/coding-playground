@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { applyThemeTokens, type ThemeTokens } from './tokens';
 import { DEFAULT_THEME_ID, THEME_PRESETS, type PresetThemeId } from './presets';
+import { persistStorage } from '../settings/safeStorage';
 import { SETTINGS_SCHEMA_VERSION } from '../settings/schemaVersion';
 
 interface ThemeState {
@@ -17,7 +18,11 @@ export function resolveActiveTokens(
   state: Pick<ThemeState, 'activeId' | 'customTokens'>,
 ): ThemeTokens {
   if (state.activeId === 'custom' && state.customTokens) return state.customTokens;
-  return THEME_PRESETS[state.activeId as PresetThemeId] ?? THEME_PRESETS[DEFAULT_THEME_ID];
+  // Object.hasOwn, not a plain lookup: activeId comes from localStorage or an imported settings
+  // file, and a name like 'constructor' would otherwise resolve to an inherited Object property.
+  return Object.hasOwn(THEME_PRESETS, state.activeId)
+    ? THEME_PRESETS[state.activeId as PresetThemeId]
+    : THEME_PRESETS[DEFAULT_THEME_ID];
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -31,6 +36,7 @@ export const useThemeStore = create<ThemeState>()(
     {
       name: 'coding-playground:theme',
       version: SETTINGS_SCHEMA_VERSION,
+      storage: persistStorage,
       // No prior versions exist yet — this is the seam for a future migration, not migrating
       // anything today. See src/settings/schemaVersion.ts.
       migrate: (persistedState) => persistedState as ThemeState,
