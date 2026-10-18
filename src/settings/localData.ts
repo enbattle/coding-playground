@@ -1,3 +1,4 @@
+import { NOTES_STORAGE_KEY } from '../notes/store';
 import { useThemeStore } from '../theme/store';
 import { THEME_PRESETS } from '../theme/presets';
 import { useCompilerOptionsStore, getCompilerOptionValues } from './compilerOptionsStore';
@@ -17,6 +18,9 @@ const PERSISTED_KEYS = [
 
 export function clearLocalData(): void {
   for (const key of PERSISTED_KEYS) localStorage.removeItem(key);
+  // Notes live in sessionStorage (ADR 0014), which survives the reload below, so they need
+  // clearing explicitly.
+  sessionStorage.removeItem(NOTES_STORAGE_KEY);
   // Reload rather than reset each store in place — guarantees every in-memory store (and
   // anything derived from it, like Monaco's applied compiler options) ends up in the same state a
   // fresh visitor would see, instead of us having to hand-maintain a "reset to defaults" path per

@@ -1,0 +1,126 @@
+.pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--cp-color-border);
+}
+
+/* Matches ConsolePanel's .head, so the two sections read as one family. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: var(--cp-font-body);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cp-color-text-dim);
+}
+
+.toggle {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--cp-color-text-strong);
+  cursor: pointer;
+}
+
+.chevron {
+  width: 10px;
+  color: var(--cp-color-text-dim);
+}
+
+.infoWrap {
+  position: relative;
+  display: flex;
+}
+
+.info {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--cp-color-text-dim);
+  cursor: help;
+}
+
+.info:hover {
+  color: var(--cp-color-text-strong);
+}
+
+/* Fixed to the viewport (left/top set inline from the info button's position), opening upward
+   since the panel sits at the bottom of the shell. Fixed, not absolute: the panel's scroll
+   container would clip it. */
+.tip {
+  position: fixed;
+  transform: translateY(-100%);
+  z-index: 5;
+  padding: 8px 10px;
+  background: var(--cp-color-surface-2);
+  border: 1px solid var(--cp-color-border);
+  border-radius: var(--cp-radius-sm);
+  box-shadow: var(--cp-shadow);
+  font-family: var(--cp-font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--cp-color-text);
+}
+
+.tip[hidden] {
+  display: none;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 12px;
+  gap: 6px;
+}
+
+.privacy {
+  margin: 0;
+  font-family: var(--cp-font-body);
+  font-size: 11.5px;
+  color: var(--cp-color-text-dim);
+}
+
+.text {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--cp-color-bg);
+  border: 1px solid var(--cp-color-border);
+  border-radius: var(--cp-radius-sm);
+  font-family: var(--cp-font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cp-color-text);
+}
+
+.text::placeholder {
+  color: var(--cp-color-text-dim);
+}
+
+/* Replaces the global focus outline (index.css) with an equally visible inset ring, which doesn't
+   get clipped by the pane's edges. */
+.text:focus-visible {
+  outline: none;
+  border-color: var(--cp-color-accent);
+  box-shadow: 0 0 0 1px var(--cp-color-accent);
+}

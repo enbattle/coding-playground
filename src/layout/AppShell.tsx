@@ -7,6 +7,8 @@ import { ConsolePanel } from '../execution/ConsolePanel';
 import { RuntimeFrame } from '../execution/RuntimeFrame';
 import { useRunnerStore } from '../execution/runnerStore';
 import { useExecutionStore } from '../execution/store';
+import { NotesPanel } from '../notes/NotesPanel';
+import { useNotesStore } from '../notes/store';
 import { WelcomeModal } from '../onboarding/WelcomeModal';
 import { PackagesPanel } from '../packages/PackagesPanel';
 import { CompilerOptionsPanel } from '../settings/CompilerOptionsPanel';
@@ -76,6 +78,9 @@ export function AppShell() {
   const openCommandPalette = useCommandPaletteStore((state) => state.setOpen);
   const openSettings = useSettingsModalStore((state) => state.setOpen);
   const [rightTab, setRightTab] = useState<RightTab>('console');
+  // Collapsed by default so a full-height console stays the norm, but open if this tab already
+  // has notes (e.g. after a reload), so they're never hidden from the person who wrote them.
+  const [notesOpen, setNotesOpen] = useState(() => useNotesStore.getState().text.trim() !== '');
   const problemsCount = useProblemsCount();
   const narrow = useIsNarrowViewport();
   const storageFull = useStorageHealthStore((state) => state.writeFailed);
@@ -129,41 +134,59 @@ export function AppShell() {
             </button>
           </header>
           <SplitPane
-            left={
+            first={
               <div className={styles.editorHost}>
                 <Suspense fallback={<div className={styles.editorLoading}>Loading editor…</div>}>
                   <MonacoEditor />
                 </Suspense>
               </div>
             }
-            right={
+            second={
               <div className={styles.rightPane}>
-                <div className={styles.rightTabs}>
-                  <TabButton active={rightTab === 'console'} onClick={() => setRightTab('console')}>
-                    Console
-                  </TabButton>
-                  <TabButton
-                    active={rightTab === 'problems'}
-                    onClick={() => setRightTab('problems')}
-                  >
-                    Problems{problemsCount > 0 ? ` (${problemsCount})` : ''}
-                  </TabButton>
-                </div>
-                <div className={styles.rightBody}>
-                  <div
-                    style={{ display: rightTab === 'console' ? 'block' : 'none', height: '100%' }}
-                  >
-                    <ConsolePanel />
-                  </div>
-                  <div
-                    style={{
-                      display: rightTab === 'problems' ? 'block' : 'none',
-                      height: '100%',
-                    }}
-                  >
-                    <ProblemsPanel />
-                  </div>
-                </div>
+                <SplitPane
+                  orientation="vertical"
+                  initialRatio={0.6}
+                  secondCollapsed={!notesOpen}
+                  first={
+                    <div className={styles.output}>
+                      <div className={styles.rightTabs}>
+                        <TabButton
+                          active={rightTab === 'console'}
+                          onClick={() => setRightTab('console')}
+                        >
+                          Console
+                        </TabButton>
+                        <TabButton
+                          active={rightTab === 'problems'}
+                          onClick={() => setRightTab('problems')}
+                        >
+                          Problems{problemsCount > 0 ? ` (${problemsCount})` : ''}
+                        </TabButton>
+                      </div>
+                      <div className={styles.rightBody}>
+                        <div
+                          style={{
+                            display: rightTab === 'console' ? 'block' : 'none',
+                            height: '100%',
+                          }}
+                        >
+                          <ConsolePanel />
+                        </div>
+                        <div
+                          style={{
+                            display: rightTab === 'problems' ? 'block' : 'none',
+                            height: '100%',
+                          }}
+                        >
+                          <ProblemsPanel />
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  second={
+                    <NotesPanel open={notesOpen} onToggle={() => setNotesOpen((open) => !open)} />
+                  }
+                />
               </div>
             }
           />
