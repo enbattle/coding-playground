@@ -38,6 +38,11 @@ check it before scoping any of those from scratch.
 - New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
   direct dependency — don't let `npm audit fix --force`'s suggestion be the default choice.
+  Before trusting an override, check that the bundle actually imports that package. `dompurify`
+  is the counterexample: Monaco ships its own vendored copy
+  (`monaco-editor/esm/vs/base/browser/dompurify/dompurify.js`), so the override only quiets
+  `npm audit` and changes nothing users receive. To judge a DOMPurify advisory, check the vendored
+  copy's version and how `domSanitize.js` calls it. Monaco doesn't use `IN_PLACE`, for example.
 - Directory layout (populated incrementally, phase by phase — don't pre-create empty ones):
   `src/editor/`, `src/execution/`, `src/settings/`, `src/packages/`, `src/layout/`, `src/state/`
   (cross-cutting hooks with no single domain owner, e.g. `useFocusTrap`), `src/theme/`,
