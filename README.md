@@ -2,7 +2,7 @@
 
 A TypeScript-first, in-browser coding playground/studio: a Monaco-powered editor, client-side
 TypeScript compilation, a sandboxed console, a curated package allowlist, a thorough settings
-system, a first-load welcome guide, and no-backend persistence/sharing — no backend, everything
+system, a first-load welcome guide, a tab-private notepad, and no-backend persistence/sharing — no backend, everything
 runs in your browser. Single file only for now (see
 `docs/decisions/0008-roll-back-multi-file-and-preview.md`).
 

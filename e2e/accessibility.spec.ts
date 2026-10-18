@@ -12,6 +12,29 @@ test.describe('accessibility', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('open notes, with the privacy tooltip showing, have no violations', async ({ page }) => {
+    await page.goto('/');
+    await waitForMonaco(page);
+    await page.getByRole('button', { name: 'Notes', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Notes' }).fill('a note');
+    await page.getByRole('button', { name: 'About notes' }).focus();
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    // toBeVisible() is satisfied by an element its container's overflow clips away; hit-test the
+    // tooltip's center to prove it's actually on top and on screen.
+    const onTop = await page.getByRole('tooltip').evaluate((tip) => {
+      const box = tip.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return hit !== null && tip.contains(hit);
+    });
+    expect(onTop).toBe(true);
+
+    const results = await new AxeBuilder({ page }).include('section[aria-label="Notes"]').analyze();
+    expect(results.violations).toEqual([]);
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('tooltip')).toBeHidden();
+  });
+
   test('Welcome modal shows on load, has no violations, and traps focus', async ({ page }) => {
     await page.goto('/');
     const dialog = page.getByRole('dialog', { name: 'Welcome' });

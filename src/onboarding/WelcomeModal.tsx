@@ -30,6 +30,12 @@ const GUIDE_ITEMS: { glyph: string; label: string; description: string }[] = [
       'TS Config covers compiler options; Settings covers font size, wrapping, and more.',
   },
   {
+    glyph: '✎',
+    label: 'Keep notes as you code',
+    description:
+      'Notes, under the console, are private to this tab: cleared when you close it, never saved or shared.',
+  },
+  {
     glyph: '⇪',
     label: 'Save or share your work',
     description:

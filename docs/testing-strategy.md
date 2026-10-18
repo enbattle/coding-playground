@@ -30,8 +30,8 @@ Phase 9 formalized what had been ad hoc, throwaway browser checks (Playwright dr
 the session scratchpad, one script per phase, discarded after use — Phases 3 through 8 were all
 verified this way) into a real committed suite. One spec file per concern, mirroring the app's own
 `src/` layout: `editor-and-run`, `editor-intellisense`, `settings-and-compiler-options`,
-`sharing-and-persistence`, `packages-and-theme`, `package-types`, `onboarding-examples`,
-`accessibility`.
+`sharing-and-persistence`, `packages-and-theme`, `package-types`, `onboarding-examples`, `notes`
+(which also holds the layout-size checks), `accessibility`.
 
 **Runs against a real production build, not `vite dev`.** `playwright.config.ts`'s `webServer`
 calls `npm run e2e:serve` (`vite build && vite preview`), deliberately — Vite's dev server bypasses
@@ -67,6 +67,15 @@ hard way while writing this suite:
   rather than fighting a third-party library's keybinding delivery — see
   `e2e/onboarding-examples.spec.ts`'s undo test and `MonacoEditor.tsx`'s `window.__cpEditor`
   exposure (added specifically for this, not a stray debug leftover).
+
+Two more, not Monaco-specific:
+
+- `toBeVisible()` only checks size and CSS visibility. An element clipped away by an ancestor's
+  `overflow` still counts as visible. For popups, hit-test instead: check that
+  `document.elementFromPoint` at the element's center lands inside it (see the notes tooltip test
+  in `e2e/accessibility.spec.ts`).
+- `page.goto()` to a URL that differs from the current one only by its `#hash` doesn't reload the
+  page, so code that reads the hash on load (share links) never runs. Go to `about:blank` first.
 
 ## Decision guide
 

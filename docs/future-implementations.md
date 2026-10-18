@@ -79,6 +79,9 @@ notion of "who," which anonymous local-only playgrounds don't have.
 These are deliberately deferred too, but smaller or already documented elsewhere, so they're
 listed here only for discoverability, not duplicated:
 
+- **Notes in share links or saved playgrounds** — deliberately not done: notes are private to the
+  tab (ADR 0014). Adding an optional field wouldn't break existing links or snapshots, but it's a
+  privacy change that needs an explicit opt-in in the UI and that ADR revisited.
 - **Per-PR preview deploys** — GitHub Pages serves one site per repo, so a PR can't get its own
   preview URL there. That needs a host with built-in previews (Vercel, Netlify, Cloudflare Pages);
   only worth switching if reviewing PRs in a browser becomes a real need.

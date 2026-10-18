@@ -92,6 +92,11 @@ couples things that should change independently.
   import loop in `localData.ts` looks similar but encodes a different rule and is the only copy,
   so it stays inline for now.
 - **At two, so wait:** the blob-download dance in `exportSettings()` and `downloadCurrentCode()`.
+- **At two, but clearly one rule:** the notes split (output over notes) is the same rule as the
+  editor | output split (two panes, a draggable ratio, the same limits), just turned 90°. So
+  `SplitPane` gained an `orientation` option instead of a second splitter being copied. "Wait for a
+  third" is for when you _can't tell_ whether two copies share a rule; here there was no doubt, and
+  the option's payoff was named on the spot.
 
 When an abstraction turns out wrong — callers start passing flags to make it behave differently for
 each of them — inline it back into the callers and re-extract from what they actually share. Don't

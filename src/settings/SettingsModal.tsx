@@ -153,7 +153,11 @@ export function SettingsModal() {
               type="button"
               className={`${styles.actionButton} ${styles.danger}`}
               onClick={() => {
-                if (window.confirm('Clear all locally saved settings and reload?')) {
+                if (
+                  window.confirm(
+                    'Clear your code, saved playgrounds, settings and notes from this browser, then reload?',
+                  )
+                ) {
                   clearLocalData();
                 }
               }}

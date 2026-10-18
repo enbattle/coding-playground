@@ -4,8 +4,14 @@
   flex: 1;
 }
 
+.wrap.vertical {
+  flex-direction: column;
+  height: 100%;
+}
+
 .pane {
   min-width: 0;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -17,13 +23,24 @@
   position: relative;
 }
 
+.vertical > .divider {
+  width: auto;
+  height: 5px;
+  cursor: row-resize;
+}
+
 .divider:hover,
 .divider.dragging {
   background: var(--cp-color-accent);
 }
 
+/* A wider invisible grab area than the 5px visible line. */
 .divider::after {
   content: '';
   position: absolute;
   inset: 0 -3px;
+}
+
+.vertical > .divider::after {
+  inset: -3px 0;
 }

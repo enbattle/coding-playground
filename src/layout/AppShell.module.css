@@ -1,12 +1,15 @@
 .stage {
   position: relative;
-  max-width: 1400px;
+  /* Wide enough to use a 1080p or 1440p screen properly (the editor, output and notes all compete
+     for this width), but capped so that on ultrawide monitors code lines and console output don't
+     stretch past comfortable reading length, and the theme's backdrop still frames the shell. */
+  max-width: 1920px;
   /* A hard height (not min-height) so it's an actual constraint flexbox shrinks .shell to fit,
      rather than a floor that .shell's content can grow past — that gap is exactly what let a few
      stray pixels of flex/border rounding overflow the viewport and trigger a page scrollbar. */
   height: 100vh;
   margin: 0 auto;
-  padding: 28px 20px;
+  padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -22,14 +25,13 @@
   background: var(--cp-color-surface);
   display: flex;
   flex-direction: column;
-  /* Fills whatever space is actually left after the pill + gap + this padding — no hardcoded
+  /* Fills whatever height is left after the pill + gap + the stage's padding — no hardcoded
      viewport-height arithmetic to keep in sync with the pill's real height (that's what caused the
      page-scroll bug: min-height: min(720px, calc(100vh - 56px)) assumed a fixed 56px of chrome that
-     stopped being true once the floating pill added its own height above the shell). Capped at
-     720px on tall screens the same way as before, just via max-height instead of a min-height min(). */
+     stopped being true once the floating pill added its own height above the shell). It used to be
+     capped at 720px; with notes stacked under the console, the full height is worth using. */
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 720px;
 }
 
 .header {
@@ -129,6 +131,12 @@
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--cp-color-border);
+}
+
+.output {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .rightTabs {

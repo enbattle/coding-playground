@@ -256,6 +256,27 @@ A whole-codebase robustness review after `docs/engineering-principles.md` landed
 Three of the new tests initially passed _before_ the fix they were meant to prove; see
 `docs/verification-discipline.md`'s "A test that passes before the fix proves nothing".
 
+## Phase 10.8 — Notes, and a bigger workspace _(scope addition)_
+
+A notepad for things users need while coding (`src/notes/`). The deciding question was whether
+notes belong to the person or the playground; they're personal and private to the browser tab
+(ADR 0014). sessionStorage, so a reload keeps them and closing the tab deletes them, and they're
+never put in share links, saved playgrounds, settings export or localStorage. The panel says so in
+a visible line plus an ⓘ tooltip.
+
+Notes sit under Console/Problems in a resizable, collapsible vertical split, so code, output and
+notes are visible at once. `SplitPane` gained a vertical orientation instead of a second splitter
+being written. To make room, the shell's 1400×720 cap was lifted to 1920px wide and full height:
+at 1920×1080 it went from 47% of the screen to 91%.
+
+Two verification lessons:
+
+- **The first e2e run was against a stale server.** A `vite preview` left running from taking
+  screenshots was reused by `reuseExistingServer`, so every test ran against the old build.
+- **`toBeVisible()` passed for a tooltip clipped to a sliver** by the pane's `overflow: auto`. Only
+  a screenshot showed it. The test now hit-tests the tooltip's center with `elementFromPoint`, and
+  the tooltip is `position: fixed`.
+
 ## Deviations from the original plan
 
 Four real forks in the road happened that weren't anticipated in the original phase breakdown.
