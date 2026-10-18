@@ -34,6 +34,9 @@ check it before scoping any of those from scratch.
   `persist`, like the existing five. Zustand's default storage swallows quota errors, so without it
   a full `localStorage` stops saving silently instead of showing the footer warning. Also add its
   key to `PERSISTED_KEYS` in `src/settings/localData.ts` so "Clear local data" covers it.
+  The one deliberate exception is notes (`src/notes/store.ts`): sessionStorage, private to the tab,
+  never in share links, saved playgrounds or settings export (ADR 0014). Don't move notes into
+  any of those, or onto `persistStorage`, without revisiting that ADR; it's a privacy decision.
 - Components are named exports except `App.tsx`'s default export (kept for Vite/React convention).
 - New dependency? Run `npm audit` before committing it. Prefer a `package.json` `overrides` entry
   to force a patched transitive version (see `dompurify` via `monaco-editor`) over downgrading the
@@ -48,7 +51,13 @@ check it before scoping any of those from scratch.
   (cross-cutting hooks with no single domain owner, e.g. `useFocusTrap`), `src/theme/`,
   `src/sharing/` (share links, saved-playground snapshots, code export — Phase 8),
   `src/commandPalette/` (Phase 7), `src/onboarding/` (example snippets, Phase 9; the first-load
-  welcome modal). No `src/files/` right now — see ADR 0008.
+  welcome modal), `src/notes/` (the tab-private notepad under the console, ADR 0014). No
+  `src/files/` right now — see ADR 0008.
+- Layout: `SplitPane` does both splits, editor | output side by side and output over notes stacked
+  (`orientation="vertical"`, with `secondCollapsed` for the folded notes header). Extend it rather
+  than writing another splitter. A popup inside a pane (tooltip, menu) must use `position: fixed`
+  or it gets clipped by the pane's `overflow: auto`; see `NotesPanel.tsx`'s tooltip and the
+  `fixedOverflowWidgets` note below.
 - Adding a curated package (ADR 0003, ADR 0009): add one entry to `src/packages/registry.ts` —
   verify it resolves on esm.sh first (`curl -sI https://esm.sh/<name>@<version>`, check for a 200
   and an `x-typescript-types` header) before pinning the version. Execution and Monaco IntelliSense
