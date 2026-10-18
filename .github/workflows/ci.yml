@@ -16,13 +16,16 @@ concurrency:
 permissions:
   contents: read
 
+# Runners are pinned to ubuntu-24.04 rather than ubuntu-latest, so a GitHub image migration can't
+# break Playwright's `install --with-deps` (and with it, every deploy) without warning. Move to a
+# newer image deliberately, in its own PR, with e2e green on it.
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -34,13 +37,13 @@ jobs:
       - run: npm run build
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # webServer startup (vite build + vite preview) hanging is a real failure mode worth capping,
     # not just the test run itself.
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -51,7 +54,7 @@ jobs:
       # but still ensure the (uncacheable) OS deps are present via install-deps.
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
@@ -62,7 +65,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -75,7 +78,7 @@ jobs:
   deploy:
     needs: [verify, e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -85,8 +88,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
